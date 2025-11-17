@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const serverless = require("serverless-http");
 require("dotenv").config();
 
 const { connectDB } = require("./models/db");
@@ -10,7 +9,9 @@ const productRouter = require("./routes/productroute");
 const app = express();
 
 // Connect DB once
-connectDB();
+(async function () {
+  await connectDB();
+})();
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +26,4 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/products", productRouter);
 
-// ❗ NO app.listen()
-// ❗ INSTEAD EXPORT HANDLER
-module.exports = serverless(app);
+module.exports = app;
