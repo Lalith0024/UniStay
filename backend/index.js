@@ -8,10 +8,10 @@ const productRouter = require("./routes/productroute");
 
 const app = express();
 
-// Connect DB once
-(async function () {
-  await connectDB();
-})();
+
+
+connectDB();
+
 
 app.use(cors());
 app.use(express.json());
@@ -25,5 +25,14 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/products", productRouter);
+
+app.listen(process.env.PORT || 8080, (error) => {
+  if(error)
+  {
+    console.error('Error starting server:', error);
+    return;
+  }
+  console.log(`Server running on port ${process.env.PORT || 8080}`);
+});
 
 module.exports = app;

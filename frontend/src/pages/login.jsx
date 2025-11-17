@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { handleError, handleSuccess } from '../utils';
 import { API_ENDPOINTS } from '../config';
-// import { ToastContainer } from 'react-toastify'; // if you use it
+
+
 
 function Login() {
   const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
@@ -33,12 +34,12 @@ function Login() {
         body: JSON.stringify({ email, password })
       });
 
-      // Try to parse JSON safely
+
       let result = {};
       try {
         result = await response.json();
       } catch {
-        // non-JSON response
+
       }
 
       console.log('Login response:', result);
