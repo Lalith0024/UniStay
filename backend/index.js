@@ -2,11 +2,11 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require('dotenv').config()
-const db = require('./models/db')
+const {connectDB} = require('./models/db')
 const authRouter = require('./routes/authRouter')
 const productRouter = require('./routes/productroute')
 const port = process.env.PORT || 8080
-
+connectDB()
 if (!process.env.JWT_SECRET) {
   console.error('✗ ERROR: JWT_SECRET is not set in environment variables. Authentication will fail!')
   console.error('Please set JWT_SECRET in your .env file')
@@ -14,12 +14,6 @@ if (!process.env.JWT_SECRET) {
   console.log('✓ JWT_SECRET is configured')
 }
 
-if (!process.env.MONGODB_URI) {
-  console.error('✗ ERROR: MONGODB_URI is not set in environment variables. Database connection will fail!')
-  console.error('Please set MONGODB_URI in your .env file')
-} else {
-  console.log('✓ MONGODB_URI is configured')
-}
 
 app.use(cors())
 app.use(express.json())
@@ -52,5 +46,7 @@ app.use((err, req, res, next) => {
     success: false
   })
 })
-
+app.listen(port, () => {
+    console.log(`Server is running on port http://localhost:${port}`)
+  })
 module.exports = app
