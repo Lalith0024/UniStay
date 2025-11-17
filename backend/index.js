@@ -53,10 +53,4 @@ app.use((err, req, res, next) => {
   })
 })
 
-if (process.env.NODE_ENV === 'development') {
-  app.listen(port, () => {
-    console.log(`Server is running on port http://localhost:${port}`)
-  })
-}
-
 module.exports = app
