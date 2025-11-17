@@ -38,7 +38,8 @@ function Login() {
       let result = {};
       try {
         result = await response.json();
-      } catch {
+      } catch(err) {
+        console.error('Error parsing JSON response:', err);
 
       }
 
