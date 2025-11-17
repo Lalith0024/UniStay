@@ -1,20 +1,29 @@
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
+let isConnected = false;
 
 const connectDB = async () => {
-    try {
-        if (!MONGODB_URI) {
-        throw new Error("MONGODB_URI is not defined in environment variables");
-        }
-        await mongoose.connect(MONGODB_URI);
-        console.log("Connected to MongoDB successfully");
-    } catch (error) {
-        console.error("Error connecting to MongoDB:", error);
-        process.exit(1);
-    }
-}
+  if (isConnected) {
+    console.log("⚠ Mongo already connected");
+    return;
+  }
 
-module.exports = {connectDB};
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) throw new Error("Missing MONGODB_URI");
+
+  try {
+    const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+
+    isConnected = true;
+
+    console.log("✓ Connected to MongoDB successfully");
+    console.log(`  Database: ${conn.connection.db.databaseName}`);
+
+  } catch (err) {
+    console.error("✗ Error connecting to MongoDB:", err.message);
+    throw err;
+  }
+};
+
+module.exports = { connectDB };
