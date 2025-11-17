@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 if (!API_BASE_URL) {
   console.warn("⚠️ BACKEND_URL is not defined in your environment!");
