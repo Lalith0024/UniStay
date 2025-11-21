@@ -1,39 +1,53 @@
-# Premium UI Overhaul Plan
+# Frontend Polish & Backend Integration Plan
 
 ## Goal
-Replace the "blueish" dark theme with a premium "True Black" aesthetic, implement infinite scroll testimonials, and enhance scroll animations for a consistent "Wow" experience.
+Polish the Landing, Login, and Signup pages to feel handcrafted and alive, specifically enhancing the **Light Mode** experience while keeping the **Dark Mode** exactly as-is. Finally, connect the frontend authentication forms to the running backend.
 
-## User Feedback
-- Dislikes "blueish" dark theme.
-- "White page sucks" (implies preference for dark or very high-end light).
-- Wants consistent scrolling animations.
-- Wants infinite scroll testimonials.
-- Needs "Wow factor".
+## Constraints
+- **Dark Mode**: MUST REMAIN UNTOUCHED.
+- **Structure**: Do not change core routing or structure.
+- **Colors**: Do not change the color palette.
+- **Light Mode**: Make it premium (glassmorphism, better contrast).
 
 ## Proposed Changes
 
-### 1. Design System (`tailwind.config.js` & `index.css`)
-- **Color Palette**: Switch `brandDark` from Slate (Blue-ish) to Zinc/Neutral (True Black/Gray).
-  - Background: `#050505` (Almost pure black)
-  - Surface: `#0a0a0a` or `#121212`
-  - Accents: Keep "Cyber Teal" but ensure it pops against the black.
-- **Typography**: Keep `Outfit` + `Space Grotesk`.
+### 1. Navbar Polish (`src/components/Navbar.jsx`)
+- **Sticky Behavior**: Add scroll listener to reduce height and add shadow/glass effect on scroll.
+- **Visuals**: Add subtle bottom border/shadow for separation.
+- **Animations**:
+  - Entrance animation (slide down).
+  - Hover slide effect for links.
+  - Polished light-mode toggle.
 
-### 2. Landing Page (`src/pages/Landing.jsx`)
-- **Hero Section**:
-  - Implement a "Spotlight" or "Aurora" background effect.
-  - Make the CTA button pulse or have a magnetic effect.
-- **Features Section**:
-  - Use `framer-motion` `whileInView` for consistent scroll triggering.
-  - Add a "Bento Grid" style layout for a modern look.
-- **Testimonials**:
-  - Implement an infinite marquee loop (left-to-right and right-to-left).
+### 2. Hero Section (`src/pages/Landing.jsx`)
+- **Typography**: Staggered letter/word reveal animation for the headline.
+- **Visuals**:
+  - Floating soft-glow shapes (parallax effect).
+  - Magnetic CTA button (scale + glow on hover).
+  - Thin gradient separator between navbar and hero.
 
-### 3. Components
-- **Navbar**: Ensure it blends seamlessly with the new black background (glassmorphism with black tint).
-- **Cards**: Update glass effect to be more subtle and premium on black.
+### 3. Testimonials (`src/pages/Landing.jsx` & `src/components/TestimonialCard.jsx`)
+- **Carousel**:
+  - Reduce speed (6-8s).
+  - Pause on hover.
+  - Add pagination dots.
+- **Card**: Tighten spacing, add hover elevation.
+
+### 4. Auth Pages (`src/pages/Login.jsx`, `src/pages/Signup.jsx`)
+- **Design**:
+  - Refine glassmorphic card for light mode.
+  - Ensure dark mode remains "True Black".
+- **Inputs (`src/components/Input.jsx`)**:
+  - Floating labels.
+  - Validation micro-interactions (shake on error).
+- **Backend Integration**:
+  - Connect `axios` calls to the backend API endpoints (`/api/auth/login`, `/api/auth/signup`).
+  - Handle success/error states with `react-toastify`.
+
+### 5. Global Polish (`src/index.css`)
+- **Scroll**: Ensure smooth scrolling site-wide.
+- **Whitespace**: Tune vertical rhythm (4/8/16 scale).
 
 ## Verification
-- Build and run locally.
-- Verify dark mode is "True Black" and not blue.
-- Check infinite scroll smoothness.
+- **Visual**: Verify Light Mode looks premium and Dark Mode is unchanged.
+- **Functional**: Verify Login and Signup actually create users/tokens in the backend.

@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import { config } from '../config';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -28,7 +30,9 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -38,16 +42,20 @@ const Signup = () => {
     try {
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...submitData } = formData;
-      const res = await axios.post('/api/auth/signup', submitData);
+      const res = await axios.post(`${config.API_URL}/auth/signup`, submitData);
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
+        toast.success('Account created successfully!');
         navigate('/dashboard');
       } else {
+        toast.success('Account created! Please login.');
         navigate('/login');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Signup failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

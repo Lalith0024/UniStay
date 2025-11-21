@@ -26,16 +26,17 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-        ? 'py-3 bg-white/80 dark:bg-brandDark-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-brandDark-800 shadow-sm'
+        ? 'py-3 bg-white/80 dark:bg-brandDark-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-brandDark-800 shadow-sm'
         : 'py-6 bg-transparent'
         }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform duration-300">
             U
           </div>
           <span className="text-2xl font-bold font-display tracking-tight text-slate-900 dark:text-white">
@@ -50,9 +51,10 @@ const Navbar = () => {
               <a
                 key={link.name}
                 href={link.path}
-                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                className="relative text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors group/link"
               >
                 {link.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover/link:w-full"></span>
               </a>
             ))}
           </div>
@@ -62,16 +64,27 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-brandDark-800 transition-colors"
+              className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-brandDark-800 transition-colors relative overflow-hidden"
+              aria-label="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={theme}
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 20, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </motion.div>
+              </AnimatePresence>
             </button>
 
             <Link to="/login">
-              <Button variant="ghost" size="sm">Log In</Button>
+              <Button variant="ghost" size="sm" className="text-slate-600 dark:text-slate-300 hover:text-primary-500 dark:hover:text-primary-400">Log In</Button>
             </Link>
             <Link to="/signup">
-              <Button variant="primary" size="sm" className="shadow-primary-500/20">Get Started</Button>
+              <Button variant="primary" size="sm" className="shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40">Get Started</Button>
             </Link>
           </div>
         </div>

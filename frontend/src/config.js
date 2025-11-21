@@ -13,4 +13,8 @@ export const API_ENDPOINTS = {
   PRODUCTS: `${API_BASE_URL}/products`,
 };
 
-export default API_BASE_URL;
+export const config = {
+  API_URL: API_BASE_URL
+};
+
+export default config;

@@ -78,8 +78,11 @@ export default {
         'blob': 'blob 7s infinite',
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
-        'marquee': 'marquee 25s linear infinite',
-        'marquee2': 'marquee2 25s linear infinite',
+        'marquee': 'marquee 40s linear infinite',
+        'marquee2': 'marquee2 40s linear infinite',
+      },
+      transitionTimingFunction: {
+        'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)',
       },
     },
   },

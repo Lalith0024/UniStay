@@ -32,6 +32,16 @@ const Landing = () => {
     },
   };
 
+  const letterVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+    },
+  };
+
+  const headline = "Smart Living for Modern Students";
+
   const testimonials = [
     {
       name: "Sarah Johnson",
@@ -93,11 +103,28 @@ const Landing = () => {
               The Future of Hostel Living is Here
             </motion.div>
 
-            <motion.h1 variants={itemVariants} className="text-5xl lg:text-7xl font-bold font-display text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1]">
-              Smart Living for <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-teal-400 to-primary-500 bg-300% animate-gradient">
-                Modern Students
-              </span>
+            <motion.h1 className="text-5xl lg:text-7xl font-bold font-display text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1] overflow-hidden">
+              <motion.span
+                initial="hidden"
+                animate="visible"
+                transition={{ staggerChildren: 0.05 }}
+                aria-hidden
+              >
+                {headline.split(" ").map((word, index) => (
+                  <span key={index} className="inline-block mr-4">
+                    {word.split("").map((char, charIndex) => (
+                      <motion.span
+                        key={charIndex}
+                        variants={letterVariants}
+                        transition={{ duration: 0.5, ease: [0.6, 0.01, 0.05, 0.95] }}
+                        className="inline-block"
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </span>
+                ))}
+              </motion.span>
             </motion.h1>
 
             <motion.p variants={itemVariants} className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -106,9 +133,11 @@ const Landing = () => {
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/signup" className="w-full sm:w-auto">
-                <Button variant="gradient" size="lg" className="w-full sm:w-auto min-w-[180px] shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40">
-                  Get Started <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button variant="gradient" size="lg" className="w-full sm:w-auto min-w-[180px] shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40">
+                    Get Started <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </motion.div>
               </Link>
               <Link to="/login" className="w-full sm:w-auto">
                 <Button variant="secondary" size="lg" className="w-full sm:w-auto min-w-[180px]">
@@ -238,21 +267,21 @@ const Landing = () => {
           </div>
         </div>
 
-        <div className="relative flex overflow-x-hidden group">
-          <div className="animate-marquee whitespace-nowrap flex gap-8">
+        <div className="relative flex overflow-x-hidden group hover:pause">
+          <div className="animate-marquee whitespace-nowrap flex gap-8 hover:pause">
             {[...testimonials, ...testimonials].map((testimonial, idx) => (
               <TestimonialCard key={idx} {...testimonial} />
             ))}
           </div>
-          <div className="absolute top-0 animate-marquee2 whitespace-nowrap flex gap-8">
+          <div className="absolute top-0 animate-marquee2 whitespace-nowrap flex gap-8 hover:pause">
             {[...testimonials, ...testimonials].map((testimonial, idx) => (
               <TestimonialCard key={idx} {...testimonial} />
             ))}
           </div>
 
           {/* Fade Edges */}
-          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-50 dark:from-brandDark-950 to-transparent z-10"></div>
-          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-slate-50 dark:from-brandDark-950 to-transparent z-10"></div>
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-50 dark:from-brandDark-950 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-slate-50 dark:from-brandDark-950 to-transparent z-10 pointer-events-none"></div>
         </div>
       </section>
 

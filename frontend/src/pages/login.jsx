@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import { config } from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,12 +31,15 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await axios.post('/api/auth/login', formData);
+      const res = await axios.post(`${config.API_URL}/auth/login`, formData);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      toast.success(`Welcome back, ${res.data.user.name}!`);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from './context/ThemeContext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/register" element={<Navigate to="/signup" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

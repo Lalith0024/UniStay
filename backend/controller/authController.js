@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 
 const checkDBConnection = () => {
     if (mongoose.connection.readyState !== 1) {
-        const states = {0: 'DISCONNECTED', 1: 'CONNECTED', 2: 'CONNECTING', 3: 'DISCONNECTING'};
+        const states = { 0: 'DISCONNECTED', 1: 'CONNECTED', 2: 'CONNECTING', 3: 'DISCONNECTING' };
         console.error('MongoDB is not connected. Connection state:', states[mongoose.connection.readyState] || 'UNKNOWN');
         return {
             error: true,
@@ -13,7 +13,7 @@ const checkDBConnection = () => {
             details: "Please start MongoDB server or check your MONGODB_URI in .env file. See MONGODB_SETUP.md for instructions."
         };
     }
-    return {error: false};
+    return { error: false };
 };
 
 const handleDBError = (dbError, res) => {
@@ -28,9 +28,9 @@ const handleDBError = (dbError, res) => {
     throw dbError;
 };
 
-const signup = async (req,res)=>{
-    try{
-        const {name,email,password} = req.body;
+const signup = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
         if (!name || !email || !password || typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
             return res.status(400).json({
                 message: "Name, email and password are required",
@@ -56,13 +56,13 @@ const signup = async (req,res)=>{
         }
         let user;
         try {
-            user = await userModel.findOne({email: trimmedEmail}).maxTimeMS(5000);
+            user = await userModel.findOne({ email: trimmedEmail }).maxTimeMS(5000);
         } catch (dbError) {
             return handleDBError(dbError, res);
         }
-        if(user){
+        if (user) {
             return res.status(400).json({
-                message:"User with this email already exists",
+                message: "User with this email already exists",
                 success: false
             });
         }
@@ -73,12 +73,26 @@ const signup = async (req,res)=>{
         });
         usermodel.password = await bcrypt.hash(password, 10);
         await usermodel.save();
- return res.status(201).json({
-  message: "User registered successfully",
-  success: true
-});
+
+        // Generate token for auto-login after signup
+        const token = jwt.sign(
+            { email: usermodel.email, _id: usermodel._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        return res.status(201).json({
+            message: "User registered successfully",
+            success: true,
+            token,
+            user: {
+                name: usermodel.name,
+                email: usermodel.email,
+                _id: usermodel._id
+            }
+        });
     }
-    catch(err){
+    catch (err) {
         console.error('Signup error:', err);
         if (err.name === 'MongoNetworkError' || err.name === 'MongoTimeoutError') {
             return res.status(503).json({
@@ -107,9 +121,9 @@ const signup = async (req,res)=>{
     }
 }
 
-const login = async (req,res)=>{
-    try{
-        const {email,password} = req.body;
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
         if (!process.env.JWT_SECRET) {
             console.error('JWT_SECRET is not defined in environment variables');
             return res.status(500).json({
@@ -156,25 +170,25 @@ const login = async (req,res)=>{
         } catch (dbError) {
             return handleDBError(dbError, res);
         }
-        if(!user){
+        if (!user) {
             return res.status(403).json({
-                message:"Invalid email or password",
+                message: "Invalid email or password",
                 success: false
             });
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        if(!isPasswordValid){
+        if (!isPasswordValid) {
             return res.status(403).json({
-                message:"Invalid email or password",
+                message: "Invalid email or password",
                 success: false
             });
         }
         let token;
         try {
             token = jwt.sign(
-                {email: user.email, _id: user._id},
+                { email: user.email, _id: user._id },
                 process.env.JWT_SECRET,
-                {expiresIn:'24h'}
+                { expiresIn: '24h' }
             );
         } catch (jwtError) {
             console.error('JWT signing error:', jwtError);
@@ -185,15 +199,18 @@ const login = async (req,res)=>{
             });
         }
         console.log(`User ${user.email} logged in successfully`);
-res.status(200).json({
-  message: "Login Successful",
-  success: true,
-  token,           // single canonical field
-  name: user.name,
-  email: user.email
-});
+        res.status(200).json({
+            message: "Login Successful",
+            success: true,
+            token,
+            user: {
+                name: user.name,
+                email: user.email,
+                _id: user._id
+            }
+        });
     }
-    catch(err){
+    catch (err) {
         console.error('Login error:', err);
         console.error('Error name:', err.name);
         console.error('Error message:', err.message);
@@ -225,4 +242,4 @@ res.status(200).json({
     }
 }
 
-module.exports = {signup, login};
+module.exports = { signup, login };
