@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");  // used to salt the password 10 rounds 
 const userModel = require("../models/user");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");

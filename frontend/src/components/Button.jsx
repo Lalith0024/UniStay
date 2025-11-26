@@ -1,9 +1,8 @@
 import React from 'react';
-// eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'framer-motion';
 
 const Button = ({
   children,
@@ -34,7 +33,7 @@ const Button = ({
   };
 
   return (
-    <motion.button
+    <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={twMerge(clsx(baseStyles, variants[variant], sizes[size], className))}
@@ -55,7 +54,7 @@ const Button = ({
           transition={{ duration: 0.5 }}
         />
       )}
-    </motion.button>
+    </motion.div>
   );
 };
 

@@ -35,7 +35,13 @@ const Login = () => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       toast.success(`Welcome back, ${res.data.user.name}!`);
-      navigate('/dashboard');
+
+      // Route based on role
+      if (formData.role === 'admin' || formData.role === 'warden') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
       setError(errorMessage);

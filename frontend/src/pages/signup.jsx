@@ -47,7 +47,13 @@ const Signup = () => {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         toast.success('Account created successfully!');
-        navigate('/dashboard');
+
+        // Route based on role
+        if (formData.role === 'admin' || formData.role === 'warden') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast.success('Account created! Please login.');
         navigate('/login');
@@ -158,7 +164,8 @@ const Signup = () => {
                 </div>
               </div>
 
-              <Button type="submit" variant="gradient" isLoading={loading} className="w-full mt-2 shadow-xl shadow-primary-500/20">
+              <Button type="submit" variant="gradient" isLoading={loading} className="w-full mt-2 shadow-xl shadow-primary-500/20"
+              onClick={() => handleSubmit()}>
                 Create Account <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
 

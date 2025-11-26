@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'framer-motion';
+
+
 import { Moon, Sun, Menu, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Button from './Button';
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // const location = useLocation();
+
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -25,7 +27,7 @@ const Navbar = () => {
   ];
 
   return (
-    <motion.nav
+    <motion.div
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
@@ -137,7 +139,7 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </motion.div>
   );
 };
 
