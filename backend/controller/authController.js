@@ -30,7 +30,7 @@ const handleDBError = (dbError, res) => {
 
 const signup = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
         if (!name || !email || !password || typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
             return res.status(400).json({
                 message: "Name, email and password are required",
@@ -39,6 +39,8 @@ const signup = async (req, res) => {
         }
         const trimmedEmail = email.trim().toLowerCase();
         const trimmedName = name.trim();
+        const userRole = role || 'student'; // Default to student if no role provided
+
         if (!trimmedEmail || !trimmedName) {
             return res.status(400).json({
                 message: "Name and email are required",
@@ -69,14 +71,15 @@ const signup = async (req, res) => {
         const usermodel = new userModel({
             name: trimmedName,
             email: trimmedEmail,
-            password: password
+            password: password,
+            role: userRole
         });
         usermodel.password = await bcrypt.hash(password, 10);
         await usermodel.save();
 
         // Generate token for auto-login after signup
         const token = jwt.sign(
-            { email: usermodel.email, _id: usermodel._id },
+            { email: usermodel.email, _id: usermodel._id, role: usermodel.role },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -88,7 +91,8 @@ const signup = async (req, res) => {
             user: {
                 name: usermodel.name,
                 email: usermodel.email,
-                _id: usermodel._id
+                _id: usermodel._id,
+                role: usermodel.role
             }
         });
     }
@@ -186,7 +190,7 @@ const login = async (req, res) => {
         let token;
         try {
             token = jwt.sign(
-                { email: user.email, _id: user._id },
+                { email: user.email, _id: user._id, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
@@ -206,7 +210,8 @@ const login = async (req, res) => {
             user: {
                 name: user.name,
                 email: user.email,
-                _id: user._id
+                _id: user._id,
+                role: user.role || 'student'
             }
         });
     }

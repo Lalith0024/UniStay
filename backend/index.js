@@ -27,8 +27,7 @@ app.use("/auth", authRouter);
 app.use("/products", productRouter);
 
 app.listen(process.env.PORT || 8080, (error) => {
-  if(error)
-  {
+  if (error) {
     console.error('Error starting server:', error);
     return;
   }

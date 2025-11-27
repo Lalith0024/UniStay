@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -9,70 +8,82 @@ import Navbar from '../components/Navbar';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { config } from '../config';
+import campusImage from '../assets/image.png';
 
 const Signup = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: 'student' // UI selection; backend role will be trusted when returned
   });
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-    setError('');
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // basic validation
     if (formData.password !== formData.confirmPassword) {
-      const errorMsg = 'Passwords do not match';
-      setError(errorMsg);
-      toast.error(errorMsg);
+      toast.error('Passwords do not match');
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
-      // eslint-disable-next-line no-unused-vars
+      // send everything except confirmPassword
       const { confirmPassword, ...submitData } = formData;
-      const res = await axios.post(`${config.API_URL}/auth/signup`, submitData);
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        toast.success('Account created successfully!');
 
-        // Route based on role
-        if (formData.role === 'admin' || formData.role === 'warden') {
-          navigate('/admin/dashboard');
+      const res = await axios.post(`${config.API_URL}/auth/signup`, submitData);
+
+      const token = res.data?.token;
+      const user = res.data?.user;
+
+      if (token && user) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        toast.success(`Welcome, ${user.name}! Account created.`);
+
+        // Prefer backend role; fallback to frontend selection if backend didn't return role
+        const role = user.role || formData.role;
+
+        if (role === 'admin' || role === 'warden') {
+          navigate('/admin/dashboard', { replace: true });
         } else {
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
         }
       } else {
-        toast.success('Account created! Please login.');
-        navigate('/login');
+        // in case backend returns success but no token/user
+        toast.success('Account created. Please log in.');
+        navigate('/login', { replace: true });
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Signup failed. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const msg = err?.response?.data?.message || 'Signup failed. Please try again.';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-brandDark-950 flex flex-col relative overflow-hidden">
-      {/* Background Blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-teal-400/10 rounded-full blur-[100px] animate-blob"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-primary-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000"></div>
+    <div className="min-h-screen relative flex flex-col overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <img
+          src={campusImage}
+          alt="Campus Background"
+          className="w-full h-full object-cover opacity-95"
+        />
+        <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-b from-white/40 via-white/30 to-white/50" />
       </div>
 
       <Navbar />
@@ -81,78 +92,73 @@ const Signup = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.45 }}
           className="w-full max-w-lg"
         >
           <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-primary-500"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-primary-500" />
 
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold font-display text-slate-900 dark:text-white mb-2">Create Account</h2>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
               <p className="text-slate-500 dark:text-slate-400">Join UNISTAY for a smarter hostel life</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30"
-                >
-                  {error}
-                </motion.div>
-              )}
-
+            <form id="signupForm" onSubmit={handleSubmit} className="space-y-5">
               <Input
                 id="name"
                 type="text"
                 label="Full Name"
+                icon={User}
+                placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                icon={User}
               />
 
               <Input
                 id="email"
                 type="email"
                 label="Email Address"
+                icon={Mail}
+                placeholder="john@example.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                icon={Mail}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <Input
                   id="password"
                   type="password"
                   label="Password"
+                  icon={Lock}
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  icon={Lock}
                 />
                 <Input
                   id="confirmPassword"
                   type="password"
-                  label="Confirm"
+                  label="Confirm Password"
+                  icon={Check}
+                  placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  icon={Check}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600 dark:text-slate-400 ml-1">I am a</label>
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  I am a...
+                </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                   <select
                     id="role"
                     value={formData.role}
                     onChange={handleChange}
-                    className="w-full bg-white/50 dark:bg-brandDark-800/50 backdrop-blur-sm border border-slate-200 dark:border-brandDark-700 rounded-xl py-3.5 pl-11 pr-4 text-slate-900 dark:text-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
+                    className="w-full bg-white/50 dark:bg-brandDark-800/50 backdrop-blur-sm border border-slate-200 dark:border-brandDark-700 rounded-xl py-3.5 pl-4 pr-10 text-slate-900 dark:text-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
                   >
                     <option value="student">Student</option>
                     <option value="warden">Warden</option>
@@ -164,18 +170,23 @@ const Signup = () => {
                 </div>
               </div>
 
-              <Button type="submit" variant="gradient" isLoading={loading} className="w-full mt-2 shadow-xl shadow-primary-500/20"
-              onClick={() => handleSubmit()}>
+              {/* Both form submit and button click call handleSubmit */}
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                variant="gradient"
+                isLoading={loading}
+                className="w-full mt-2 shadow-xl shadow-primary-500/20"
+              >
                 Create Account <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
 
-              <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
+              <p className="text-center text-slate-600 dark:text-slate-400">
                 Already have an account?{' '}
-                <Link to="/login" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">
-                  Sign In
-                </Link>
+                <Link to="/login" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">Sign In</Link>
               </p>
             </form>
+
           </div>
         </motion.div>
       </div>
