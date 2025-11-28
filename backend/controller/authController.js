@@ -21,7 +21,6 @@ const handleDBError = (dbError, res) => {
     if (dbError.name === 'MongoServerSelectionError' || dbError.name === 'MongoNetworkError') {
         return res.status(503).json({
             message: "Database connection error. Please check if MongoDB is running.",
-            success: false,
             error: "Database unavailable"
         });
     }
@@ -34,7 +33,6 @@ const signup = async (req, res) => {
         if (!name || !email || !password || typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
             return res.status(400).json({
                 message: "Name, email and password are required",
-                success: false
             });
         }
         const trimmedEmail = email.trim().toLowerCase();
@@ -44,14 +42,12 @@ const signup = async (req, res) => {
         if (!trimmedEmail || !trimmedName) {
             return res.status(400).json({
                 message: "Name and email are required",
-                success: false
             });
         }
         const dbCheck = checkDBConnection();
         if (dbCheck.error) {
             return res.status(503).json({
                 message: dbCheck.message,
-                success: false,
                 error: "MongoDB not connected",
                 details: dbCheck.details
             });
@@ -65,7 +61,6 @@ const signup = async (req, res) => {
         if (user) {
             return res.status(400).json({
                 message: "User with this email already exists",
-                success: false
             });
         }
         const usermodel = new userModel({
@@ -81,7 +76,7 @@ const signup = async (req, res) => {
         const token = jwt.sign(
             { email: usermodel.email, _id: usermodel._id, role: usermodel.role },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '7d' }
         );
 
         return res.status(201).json({

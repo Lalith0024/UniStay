@@ -23,8 +23,11 @@ app.get("/", (req, res) => {
   });
 });
 
+const apiRoutes = require('./routes');
+
 app.use("/auth", authRouter);
 app.use("/products", productRouter);
+app.use("/api", apiRoutes);
 
 app.listen(process.env.PORT || 8080, () => {
   console.log(`Server running on port ${process.env.PORT || 8080}`);
