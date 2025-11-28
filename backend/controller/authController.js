@@ -81,7 +81,7 @@ const signup = async (req, res) => {
 
         return res.status(201).json({
             message: "User registered successfully",
-            success: true,
+
             token,
             user: {
                 name: usermodel.name,
@@ -96,25 +96,22 @@ const signup = async (req, res) => {
         if (err.name === 'MongoNetworkError' || err.name === 'MongoTimeoutError') {
             return res.status(503).json({
                 message: "Database connection error. Please try again later.",
-                success: false,
                 error: "Database unavailable"
             });
         }
         if (err.code === 11000 || err.message && err.message.includes('duplicate')) {
             return res.status(400).json({
                 message: "User with this email already exists",
-                success: false
             });
         }
         if (err.name === 'ValidationError') {
             return res.status(400).json({
                 message: "Validation error: " + Object.values(err.errors).map(e => e.message).join(', '),
-                success: false
             });
         }
         return res.status(500).json({
             message: "An error occurred during registration. Please try again.",
-            success: false,
+
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
         });
     }

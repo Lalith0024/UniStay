@@ -140,6 +140,7 @@ const Login = () => {
                 </div>
               </div>
 
+              {/* Button triggers handleSubmit directly via onClick and also form has onSubmit */}
               <Button
                 type="button"
                 onClick={handleSubmit}
