@@ -100,6 +100,12 @@ const Notices = () => {
     }
   };
 
+  /* View Notice */
+  const handleView = (notice) => {
+    setSelectedNotice(notice);
+    setViewModal(true);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -202,13 +208,17 @@ const Notices = () => {
               <div
                 key={notice._id}
                 onClick={() => handleView(notice)}
-                className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-lg hover:border-primary-500/30 transition-all duration-300"
+                className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Decorative Gradient Background */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/5 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110" />
+                <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${notice.priority === 'Urgent'
+                  ? 'from-red-500/10 to-transparent'
+                  : 'from-primary-500/10 to-transparent'
+                  } rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-110`} />
 
                 {notice.priority === "Urgent" && (
-                  <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-bl-xl font-bold z-10 shadow-sm">
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold border border-red-100 dark:border-red-900/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
                     Urgent
                   </div>
                 )}
@@ -219,18 +229,21 @@ const Notices = () => {
                     e.stopPropagation();
                     handleDelete(notice._id);
                   }}
-                  className="absolute bottom-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 z-20"
+                  className="absolute bottom-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover:opacity-100 z-20"
                 >
                   <Trash2 size={18} />
                 </button>
 
                 <div className="flex items-start gap-5 relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-800/10 flex items-center justify-center text-primary-600 dark:text-primary-400 shrink-0 shadow-inner">
-                    <Bell size={22} />
+                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${notice.priority === 'Urgent'
+                    ? 'bg-red-50 dark:bg-red-900/10 text-red-500 border-red-100 dark:border-red-900/20'
+                    : 'bg-primary-50 dark:bg-primary-900/10 text-primary-500 border-primary-100 dark:border-primary-900/20'
+                    }`}>
+                    <Bell size={24} className={notice.priority === 'Urgent' ? 'animate-bounce-slow' : ''} />
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 truncate pr-8">
+                  <div className="flex-1 min-w-0 pt-1">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5 truncate pr-20 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {notice.title}
                     </h3>
 
@@ -241,9 +254,16 @@ const Notices = () => {
                         : "No Date"}
                     </p>
 
-                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-2">
-                      {notice.description}
-                    </p>
+                    <div className="relative">
+                      <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-2 pr-4">
+                        {notice.description}
+                      </p>
+                      {notice.description.length > 100 && (
+                        <span className="text-primary-500 text-xs font-semibold mt-1 inline-flex items-center gap-1 group-hover:underline">
+                          Read more
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -305,7 +325,7 @@ const Notices = () => {
 
               <div>
                 <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Description</h4>
-                <div className="p-4 bg-slate-50 dark:bg-neutral-900 rounded-xl border border-slate-100 dark:border-neutral-700 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                <div className="p-4 bg-slate-50 dark:bg-neutral-900 rounded-xl border border-slate-100 dark:border-neutral-700 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap break-words break-all">
                   {selectedNotice.description}
                 </div>
               </div>

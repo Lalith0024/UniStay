@@ -11,7 +11,8 @@ const studentSchema = new mongoose.Schema({
   role: { type: String, default: 'student' }, // Added for auth compatibility
   phone: { type: String },
   department: { type: String },
-  year: { type: String }
+  year: { type: String },
+  image: { type: String }
 }, { timestamps: true });
 
 // Room Schema
@@ -32,7 +33,7 @@ const complaintSchema = new mongoose.Schema({
   issue: { type: String, required: true },
   description: { type: String },
   priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium', index: true },
-  status: { type: String, enum: ['Pending', 'Resolved', 'Rejected'], default: 'Pending', index: true },
+  status: { type: String, enum: ['Pending', 'In Progress', 'Resolved', 'Rejected'], default: 'Pending', index: true },
   date: { type: Date, default: Date.now }
 }, { timestamps: true });
 

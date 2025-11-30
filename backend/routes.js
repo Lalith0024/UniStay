@@ -119,6 +119,7 @@ router.patch('/leaves/:id/status', async (req, res) => {
 // Students
 router.post('/students', async (req, res) => {
   try {
+    console.log('Creating student:', req.body);
     const student = await Student.create(req.body);
     res.status(201).json(student);
   } catch (error) {
@@ -128,6 +129,7 @@ router.post('/students', async (req, res) => {
 
 router.patch('/students/:id', async (req, res) => {
   try {
+    console.log('Updating student:', req.params.id, req.body);
     const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(student);
   } catch (error) {

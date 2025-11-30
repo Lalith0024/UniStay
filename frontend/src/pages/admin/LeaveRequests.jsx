@@ -49,22 +49,47 @@ const LeaveRequests = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Leave Requests</h1>
-        <div className="flex flex-wrap gap-2">
-          {['', 'Pending', 'Approved', 'Rejected'].map((status) => (
-            <button
-              key={status || 'all'}
-              onClick={() => {
-                setStatusFilter(status);
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${statusFilter === status
-                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-neutral-700'
-                }`}
-            >
-              {status || 'All'}
-            </button>
-          ))}
+        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
+          {['All', 'Pending', 'Approved', 'Rejected'].map((status) => {
+            const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
+            const getStatusColor = () => {
+              if (status === 'Approved') return 'from-green-500 via-green-600 to-green-700';
+              if (status === 'Rejected') return 'from-red-500 via-red-600 to-red-700';
+              if (status === 'Pending') return 'from-yellow-500 via-yellow-600 to-yellow-700';
+              return 'from-primary-500 via-primary-600 to-primary-700';
+            };
+            const getGlowColor = () => {
+              if (status === 'Approved') return 'from-green-400 to-green-600';
+              if (status === 'Rejected') return 'from-red-400 to-red-600';
+              if (status === 'Pending') return 'from-yellow-400 to-yellow-600';
+              return 'from-primary-400 to-primary-600';
+            };
+            return (
+              <button
+                key={status}
+                onClick={() => {
+                  setStatusFilter(status === 'All' ? '' : status);
+                  setPage(1);
+                }}
+                className={`relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden group ${isActive
+                    ? 'text-white shadow-lg scale-105'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
+                  }`}
+              >
+                {isActive && (
+                  <>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${getStatusColor()} animate-gradient-shift`}></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                    <div className={`absolute -inset-1 bg-gradient-to-r ${getGlowColor()} opacity-30 blur-lg group-hover:opacity-50 transition-opacity`}></div>
+                  </>
+                )}
+                {!isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-200/50 to-slate-300/50 dark:from-neutral-700/50 dark:to-neutral-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
+                <span className="relative z-10">{status}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
