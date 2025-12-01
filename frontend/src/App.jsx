@@ -3,14 +3,27 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+
+// Admin
 import AdminLayout from './pages/admin/AdminLayout';
-import DashboardOverview from './pages/admin/DashboardOverview';
-import Students from './pages/admin/Students';
-import Rooms from './pages/admin/Rooms';
-import Complaints from './pages/admin/Complaints';
-import LeaveRequests from './pages/admin/LeaveRequests';
-import Notices from './pages/admin/Notices';
-import StudentDashboard from './pages/StudentDashboard';
+import AdminDashboardOverview from './pages/admin/DashboardOverview';
+import AdminStudents from './pages/admin/Students';
+import AdminRooms from './pages/admin/Rooms';
+import AdminComplaints from './pages/admin/Complaints';
+import AdminLeaveRequests from './pages/admin/LeaveRequests';
+import AdminNotices from './pages/admin/Notices';
+
+// Student Pages
+import StudentLayout from './pages/student/StudentLayout';
+import StudentDashboardOverview from './pages/student/DashboardOverview';
+import StudentProfile from './pages/student/StudentProfile';
+
+import StudentComplaints from './pages/student/Complaints';
+import StudentLeaves from './pages/student/Leaves';
+import StudentPayments from './pages/student/Payments';
+import StudentNotices from './pages/student/Notices';
+import StudentMessages from './pages/student/Messages';
+
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 import { ToastContainer } from 'react-toastify';
@@ -39,14 +52,30 @@ function App() {
               </PublicRoute>
             }
           />
+
+          {/* Student Routes */}
           <Route
-            path="/dashboard"
+            path="/student"
             element={
               <ProtectedRoute>
-                <StudentDashboard />
+                <StudentLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboardOverview />} />
+            <Route path="profile" element={<StudentProfile />} />
+            <Route path="complaints" element={<StudentComplaints />} />
+            <Route path="leaves" element={<StudentLeaves />} />
+            <Route path="payments" element={<StudentPayments />} />
+            <Route path="notices" element={<StudentNotices />} />
+            <Route path="messages" element={<StudentMessages />} />
+          </Route>
+
+          {/* Legacy Redirect */}
+          <Route path="/dashboard" element={<Navigate to="/student/dashboard" replace />} />
+
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -56,13 +85,14 @@ function App() {
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardOverview />} />
-            <Route path="students" element={<Students />} />
-            <Route path="rooms" element={<Rooms />} />
-            <Route path="complaints" element={<Complaints />} />
-            <Route path="leaves" element={<LeaveRequests />} />
-            <Route path="notices" element={<Notices />} />
+            <Route path="dashboard" element={<AdminDashboardOverview />} />
+            <Route path="students" element={<AdminStudents />} />
+            <Route path="rooms" element={<AdminRooms />} />
+            <Route path="complaints" element={<AdminComplaints />} />
+            <Route path="leaves" element={<AdminLeaveRequests />} />
+            <Route path="notices" element={<AdminNotices />} />
           </Route>
+
           <Route path="/register" element={<Navigate to="/signup" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

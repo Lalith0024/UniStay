@@ -72,6 +72,14 @@ router.get('/complaints', (req, res) => apiHandler(Complaint, req, res, ['issue'
 
 // Leaves (PSSF enabled)
 router.get('/leaves', (req, res) => apiHandler(Leave, req, res, ['reason', 'status']));
+router.post('/leaves', async (req, res) => {
+  try {
+    const leave = await Leave.create(req.body);
+    res.status(201).json(leave);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 
 // Notices
 router.get('/notices', (req, res) => apiHandler(Notice, req, res, ['title', 'description']));
@@ -106,6 +114,40 @@ router.patch('/leaves/:id/status', async (req, res) => {
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
       { status },
+      { new: true }
+    );
+    res.json(leave);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Checkout Leave
+router.patch('/leaves/:id/checkout', async (req, res) => {
+  try {
+    const leave = await Leave.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'Checked Out',
+        checkoutDate: new Date()
+      },
+      { new: true }
+    );
+    res.json(leave);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Checkin Leave
+router.patch('/leaves/:id/checkin', async (req, res) => {
+  try {
+    const leave = await Leave.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'Completed',
+        checkinDate: new Date()
+      },
       { new: true }
     );
     res.json(leave);
