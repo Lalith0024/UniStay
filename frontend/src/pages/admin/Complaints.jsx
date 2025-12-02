@@ -24,7 +24,12 @@ const Complaints = () => {
         status: statusFilter,
         search
       };
-      const res = await axios.get(`${config.API_URL}/api/complaints`, { params });
+      const res = await axios.get(`${config.API_URL}/api/complaints`, {
+        params,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setComplaints(res.data.data);
       setTotalPages(res.data.meta.totalPages);
     } catch (error) {
@@ -43,7 +48,14 @@ const Complaints = () => {
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-      await axios.patch(`${config.API_URL}/api/complaints/${id}`, { status: newStatus });
+      await axios.patch(`${config.API_URL}/api/complaints/${id}`,
+        { status: newStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
       toast.success(`Complaint marked as ${newStatus.toLowerCase()}`);
       fetchComplaints();
     } catch (error) {

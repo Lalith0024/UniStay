@@ -22,7 +22,8 @@ const LeaveRequests = () => {
         status: statusFilter,
         search
       };
-      const res = await axios.get(`${config.API_URL}/api/leaves`, { params }, {
+      const res = await axios.get(`${config.API_URL}/api/leaves`, {
+        params,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -46,7 +47,14 @@ const LeaveRequests = () => {
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-      await axios.patch(`${config.API_URL}/api/leaves/${id}/status`, { status: newStatus });
+      await axios.patch(`${config.API_URL}/api/leaves/${id}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
       toast.success(`Leave request ${newStatus.toLowerCase()}`);
       fetchLeaves();
     } catch (error) {
