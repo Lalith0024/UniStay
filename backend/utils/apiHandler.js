@@ -31,57 +31,59 @@ const apiHandler = async (Model, req, res, searchFields = []) => {
       sortQuery = { [parts[0]]: parts[1] === 'desc' ? -1 : 1 };
     }
 
-    // Execute Query with proper population
+    // Execute Query
     const totalDocs = await Model.countDocuments(query);
 
-    let queryBuilder = Model.find(query)
+    // Fetch docs WITHOUT automatic population first to preserve original IDs
+    let docs = await Model.find(query)
       .sort(sortQuery)
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean(); // Use lean() for better performance and easier modification
 
-    // Populate studentId for Complaint and Leave models with specific fields
-    if (Model.modelName === 'Complaint' || Model.modelName === 'Leave') {
-      queryBuilder = queryBuilder.populate('studentId', 'name email room block phone department year');
-    }
-
-    let docs = await queryBuilder;
-
-    // Handle cases where studentId might be a User ID instead of Student ID
+    // Manual Population for Complaint and Leave models
     if (Model.modelName === 'Complaint' || Model.modelName === 'Leave') {
       const User = require('../models/user');
       const Student = require('../models/Student');
 
-      // Check each document and fix missing student data
       docs = await Promise.all(docs.map(async (doc) => {
-        const docObj = doc.toObject();
+        // Get the original ID (could be Student ID or User ID)
+        const originalId = doc.studentId;
 
-        // If studentId is not populated or missing name, try to find student by User ID
-        if (!docObj.studentId || !docObj.studentId.name) {
-          try {
-            // Try to find User by the ID
-            const user = await User.findById(doc.studentId);
+        if (!originalId) return doc;
+
+        let student = null;
+
+        try {
+          // 1. Try to find as Student first
+          student = await Student.findById(originalId).select('name email room block phone department year');
+
+          // 2. If not found, try to find as User (legacy data fix)
+          if (!student) {
+            const user = await User.findById(originalId);
             if (user && user.email) {
               // Find corresponding Student by email
-              const student = await Student.findOne({ email: user.email });
-              if (student) {
-                docObj.studentId = {
-                  _id: student._id,
-                  name: student.name,
-                  email: student.email,
-                  room: student.room,
-                  block: student.block,
-                  phone: student.phone,
-                  department: student.department,
-                  year: student.year
-                };
-              }
+              student = await Student.findOne({ email: user.email }).select('name email room block phone department year');
             }
-          } catch (err) {
-            console.error('Error resolving student:', err);
           }
+        } catch (err) {
+          console.error('Error resolving student in apiHandler:', err);
         }
 
-        return docObj;
+        // 3. Attach student data if found
+        if (student) {
+          doc.studentId = student;
+        } else {
+          // Fallback object if absolutely nothing found
+          doc.studentId = {
+            name: 'Unknown Student',
+            email: 'N/A',
+            room: 'N/A',
+            block: '-'
+          };
+        }
+
+        return doc;
       }));
     }
 
