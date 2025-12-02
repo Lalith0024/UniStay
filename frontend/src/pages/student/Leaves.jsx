@@ -47,7 +47,11 @@ export default function StudentLeaves() {
       // Fetch all leaves for the student
       // In a real app, we might want to filter on backend, but for now we fetch all and sort client-side
       // to easily separate active vs history without complex backend queries right now.
-      const response = await fetch(`${API_BASE_URL}/api/leaves?studentId=${user._id}&limit=100&sort=createdAt:desc`);
+      const response = await fetch(`${API_BASE_URL}/api/leaves?studentId=${user.studentId || user._id}&limit=100&sort=createdAt:desc`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const data = await response.json();
 
       if (data.data) {
@@ -83,7 +87,10 @@ export default function StudentLeaves() {
 
       const response = await fetch(`${API_BASE_URL}/api/leaves`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(payload)
       });
 

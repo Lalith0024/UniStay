@@ -56,7 +56,8 @@ export default function StudentComplaints() {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-      let url = `${API_BASE_URL}/api/complaints?page=${currentPage}&limit=${limit}&sort=createdAt:desc`;
+      // Filter by studentId to show only this student's complaints
+      let url = `${API_BASE_URL}/api/complaints?page=${currentPage}&limit=${limit}&sort=createdAt:desc&studentId=${user.studentId || user._id}`;
 
       if (searchTerm) {
         url += `&search=${encodeURIComponent(searchTerm)}`;
@@ -68,7 +69,11 @@ export default function StudentComplaints() {
         url += `&priority=${filterPriority}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const data = await response.json();
 
       if (data.data && data.data.length > 0) {
@@ -106,7 +111,10 @@ export default function StudentComplaints() {
 
       const response = await fetch(`${API_BASE_URL}/api/complaints`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           ...newComplaint,
           studentId: user.studentId || user._id,
