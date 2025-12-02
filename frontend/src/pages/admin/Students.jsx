@@ -63,35 +63,56 @@ const Students = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // Check if room exists (if room number is provided)
+      // Auto-create room if it doesn't exist (with smart defaults)
       if (newStudent.room && newStudent.block) {
-        const roomCheck = await axios.get(`${config.API_URL}/api/rooms?search=${newStudent.room}&block=${newStudent.block}`);
+        try {
+          const roomCheck = await axios.get(`${config.API_URL}/api/rooms?search=${newStudent.room}&block=${newStudent.block}`);
 
-        if (roomCheck.data.data.length === 0) {
-          // Room doesn't exist - ask to create
-          const createRoom = window.confirm(
-            `Room ${newStudent.room} in Block ${newStudent.block} doesn't exist.\n\nWould you like to create it automatically?`
-          );
+          if (roomCheck.data.data.length === 0) {
+            // Room doesn't exist - create it automatically with smart defaults
 
-          if (createRoom) {
-            // Determine capacity based on room type (you can adjust this logic)
-            const capacity = 2; // Default to double occupancy
+            // Smart capacity detection based on room number pattern
+            const roomNum = parseInt(newStudent.room);
+            let capacity = 3; // Default to Triple
+            let type = 'Triple';
+
+            // If room number ends in 01-10, make it Double (smaller rooms)
+            if (roomNum % 100 <= 10) {
+              capacity = 2;
+              type = 'Double';
+            }
+
+            // Create room automatically
             await axios.post(`${config.API_URL}/api/rooms`, {
               number: newStudent.room,
               block: newStudent.block,
-              type: 'Double',
+              type: type,
               capacity: capacity,
               occupied: 1, // This student will occupy it
               status: 'Available'
             });
-            toast.success(`Room ${newStudent.room} created successfully!`);
+
+            toast.success(`Room ${newStudent.room} (${type}, ${capacity} capacity) created automatically!`, {
+              autoClose: 3000
+            });
           } else {
-            toast.info('Student creation cancelled. Please create the room first or assign a different room.');
-            return;
+            // Room exists - update occupied count
+            const existingRoom = roomCheck.data.data[0];
+            if (existingRoom.occupied < existingRoom.capacity) {
+              await axios.patch(`${config.API_URL}/api/rooms/${existingRoom._id}`, {
+                occupied: existingRoom.occupied + 1,
+                status: (existingRoom.occupied + 1) >= existingRoom.capacity ? 'Full' : 'Available'
+              });
+            }
           }
+        } catch (roomError) {
+          console.error('Room check/creation error:', roomError);
+          // Continue with student creation even if room operation fails
+          toast.warning('Room operation failed, but continuing with student creation');
         }
       }
 
+      // Create student
       await axios.post(`${config.API_URL}/api/students`, newStudent);
       toast.success('Student created successfully');
       setCreateModal(false);
@@ -132,6 +153,39 @@ const Students = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
+      // Auto-create room if it doesn't exist when updating student
+      if (editingStudent.room && editingStudent.block) {
+        try {
+          const roomCheck = await axios.get(`${config.API_URL}/api/rooms?search=${editingStudent.room}&block=${editingStudent.block}`);
+
+          if (roomCheck.data.data.length === 0) {
+            // Room doesn't exist - create it automatically
+            const roomNum = parseInt(editingStudent.room);
+            let capacity = 3;
+            let type = 'Triple';
+
+            if (roomNum % 100 <= 10) {
+              capacity = 2;
+              type = 'Double';
+            }
+
+            await axios.post(`${config.API_URL}/api/rooms`, {
+              number: editingStudent.room,
+              block: editingStudent.block,
+              type: type,
+              capacity: capacity,
+              occupied: 1,
+              status: 'Available'
+            });
+
+            toast.success(`Room ${editingStudent.room} (${type}) created automatically!`);
+          }
+        } catch (roomError) {
+          console.error('Room check/creation error:', roomError);
+          toast.warning('Room operation failed, but continuing with student update');
+        }
+      }
+
       await axios.patch(`${config.API_URL}/api/students/${editingStudent._id}`, editingStudent);
       toast.success('Student updated successfully');
       setEditModal(false);
