@@ -31,13 +31,20 @@ const apiHandler = async (Model, req, res, searchFields = []) => {
       sortQuery = { [parts[0]]: parts[1] === 'desc' ? -1 : 1 };
     }
 
-    // Execute Query
+    // Execute Query with proper population
     const totalDocs = await Model.countDocuments(query);
-    const docs = await Model.find(query)
+
+    let queryBuilder = Model.find(query)
       .sort(sortQuery)
       .skip(skip)
-      .limit(limitNum)
-      .populate(Model.modelName === 'Complaint' || Model.modelName === 'Leave' ? 'studentId' : '');
+      .limit(limitNum);
+
+    // Populate studentId for Complaint and Leave models with specific fields
+    if (Model.modelName === 'Complaint' || Model.modelName === 'Leave') {
+      queryBuilder = queryBuilder.populate('studentId', 'name email room block phone department year');
+    }
+
+    const docs = await queryBuilder;
 
     res.json({
       data: docs,
