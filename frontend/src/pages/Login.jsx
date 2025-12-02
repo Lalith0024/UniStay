@@ -17,7 +17,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'student' // UI-only; fallback if backend doesn't return role
+    role: 'student'
   });
 
   const [loading, setLoading] = useState(false);
@@ -26,12 +26,15 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
+  const handleRoleChange = (role) => {
+    setFormData((prev) => ({ ...prev, role }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Send only credentials — backend decides role
       const payload = {
         email: formData.email,
         password: formData.password
@@ -48,7 +51,6 @@ const Login = () => {
 
         toast.success(`Welcome back, ${user.name}!`);
 
-        // Prefer backend role; fall back to selected UI role
         const role = user.role || formData.role;
 
         if (role === 'admin' || role === 'warden') {
@@ -67,7 +69,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden">
-
       <div className="absolute inset-0">
         <img
           src={campusImage}
@@ -79,8 +80,13 @@ const Login = () => {
 
       <Navbar />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-20 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="w-full max-w-md"
+        >
           <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-teal-400" />
 
@@ -89,7 +95,38 @@ const Login = () => {
               <p className="text-slate-500 dark:text-slate-400">Sign in to access your dashboard</p>
             </div>
 
-            <form id="loginForm" onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Role Selector - Toggle Buttons */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Login as
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('student')}
+                    className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
+                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                  >
+                    <User className="w-4 h-4 inline-block mr-2" />
+                    Student
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('admin')}
+                    className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
+                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                  >
+                    <User className="w-4 h-4 inline-block mr-2" />
+                    Admin
+                  </button>
+                </div>
+              </div>
+
               <Input
                 id="email"
                 type="email"
@@ -112,52 +149,31 @@ const Login = () => {
                 required
               />
 
-              <div className="space-y-1">
-                <div className="flex justify-end">
-                  <Link to="/forgot-password" className="text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors">
-                    Forgot Password?
-                  </Link>
-                </div>
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors"
+                >
+                  Forgot Password?
+                </Link>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  I am a...
-                </label>
-                <div className="relative">
-                  <select
-                    id="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full bg-white/50 dark:bg-brandDark-800/50 backdrop-blur-sm border border-slate-200 dark:border-brandDark-700 rounded-xl py-3.5 pl-4 pr-10 text-slate-900 dark:text-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="student">Student</option>
-                    <option value="warden">Warden</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Button triggers handleSubmit directly via onClick and also form has onSubmit */}
               <Button
-                type="button"
-                onClick={handleSubmit}
+                type="submit"
                 variant="gradient"
                 isLoading={loading}
-                className="w-full shadow-xl shadow-primary-500/20"
+                className="w-full shadow-xl shadow-primary-500/20 mt-6"
               >
                 Sign In <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
 
-              <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
+              <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4">
                 Don't have an account?{' '}
-                <Link to="/signup" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">Create Account</Link>
+                <Link to="/signup" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">
+                  Create Account
+                </Link>
               </p>
             </form>
-
           </div>
         </motion.div>
       </div>

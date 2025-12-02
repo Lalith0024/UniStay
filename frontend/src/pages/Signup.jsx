@@ -19,7 +19,7 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student' // UI selection; backend role will be trusted when returned
+    role: 'student'
   });
 
   const [loading, setLoading] = useState(false);
@@ -28,10 +28,13 @@ const Signup = () => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
+  const handleRoleChange = (role) => {
+    setFormData((prev) => ({ ...prev, role }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // basic validation
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -40,7 +43,6 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // send everything except confirmPassword
       const { confirmPassword, ...submitData } = formData;
 
       const res = await axios.post(`${config.API_URL}/auth/signup`, submitData);
@@ -54,7 +56,6 @@ const Signup = () => {
 
         toast.success(`Welcome, ${user.name}! Account created.`);
 
-        // Prefer backend role; fallback to frontend selection if backend didn't return role
         const role = user.role || formData.role;
 
         if (role === 'admin' || role === 'warden') {
@@ -63,7 +64,6 @@ const Signup = () => {
           navigate('/dashboard', { replace: true });
         }
       } else {
-        // in case backend returns success but no token/user
         toast.success('Account created. Please log in.');
         navigate('/login', { replace: true });
       }
@@ -77,19 +77,18 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0">
         <img
           src={campusImage}
           alt="Campus Background"
           className="w-full h-full object-cover opacity-95"
         />
-        <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-b from-white/40 via-white/30 to-white/50" />
+        <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-b from-white/40 via-white/30 to-white/50 dark:from-black/40 dark:via-black/30 dark:to-black/60" />
       </div>
 
       <Navbar />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-20 relative z-10">
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -104,7 +103,38 @@ const Signup = () => {
               <p className="text-slate-500 dark:text-slate-400">Join UNISTAY for a smarter hostel life</p>
             </div>
 
-            <form id="signupForm" onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Role Selector - Toggle Buttons */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Register as
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('student')}
+                    className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
+                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                  >
+                    <User className="w-4 h-4 inline-block mr-2" />
+                    Student
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('admin')}
+                    className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
+                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      }`}
+                  >
+                    <User className="w-4 h-4 inline-block mr-2" />
+                    Admin
+                  </button>
+                </div>
+              </div>
+
               <Input
                 id="name"
                 type="text"
@@ -150,44 +180,22 @@ const Signup = () => {
                 />
               </div>
 
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  I am a...
-                </label>
-                <div className="relative">
-                  <select
-                    id="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full bg-white/50 dark:bg-brandDark-800/50 backdrop-blur-sm border border-slate-200 dark:border-brandDark-700 rounded-xl py-3.5 pl-4 pr-10 text-slate-900 dark:text-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="student">Student</option>
-                    <option value="warden">Warden</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Both form submit and button click call handleSubmit */}
               <Button
-                type="button"
-                onClick={handleSubmit}
+                type="submit"
                 variant="gradient"
                 isLoading={loading}
-                className="w-full mt-2 shadow-xl shadow-primary-500/20"
+                className="w-full shadow-xl shadow-primary-500/20 mt-6"
               >
                 Create Account <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
 
-              <p className="text-center text-slate-600 dark:text-slate-400">
+              <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4">
                 Already have an account?{' '}
-                <Link to="/login" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">Sign In</Link>
+                <Link to="/login" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">
+                  Sign In
+                </Link>
               </p>
             </form>
-
           </div>
         </motion.div>
       </div>
