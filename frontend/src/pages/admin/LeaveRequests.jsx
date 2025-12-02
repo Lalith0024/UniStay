@@ -22,7 +22,11 @@ const LeaveRequests = () => {
         status: statusFilter,
         search
       };
-      const res = await axios.get(`${config.API_URL}/api/leaves`, { params });
+      const res = await axios.get(`${config.API_URL}/api/leaves`, { params }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setLeaves(res.data.data);
       setTotalPages(res.data.meta.totalPages);
     } catch (error) {
