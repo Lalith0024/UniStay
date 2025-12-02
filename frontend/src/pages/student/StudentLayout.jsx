@@ -75,33 +75,30 @@ export default function StudentLayout() {
     <div className="flex flex-col md:flex-row bg-neutral-50 dark:bg-neutral-900 w-full h-screen overflow-hidden">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo Section */}
-            <div className="flex items-center gap-2 py-4 border-b border-neutral-200 dark:border-neutral-800 flex-shrink-0">
-              <div className="w-8 h-8 min-w-[2rem] rounded-lg bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg">
+            <div className="flex items-center gap-2 py-4 border-b border-neutral-200 dark:border-neutral-800">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
                 U
               </div>
               {open && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex flex-col whitespace-nowrap overflow-hidden"
+                  className="flex flex-col"
                 >
                   <span className="font-bold text-lg text-neutral-800 dark:text-white tracking-tight">UNISTAY</span>
                 </motion.div>
               )}
             </div>
 
-            {/* Navigation Links - Centered Vertically */}
-            <div className="flex-1 flex flex-col justify-center gap-2 overflow-y-auto overflow-x-hidden my-4">
+            <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => (
                 <SidebarLink key={idx} link={link} />
               ))}
             </div>
           </div>
-
-          {/* Logout Section */}
-          <div className="flex-shrink-0">
+          <div>
             <SidebarLink
               link={{
                 label: "Logout",

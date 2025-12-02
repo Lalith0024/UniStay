@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
@@ -13,17 +13,24 @@ import {
 } from "lucide-react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { motion } from "framer-motion";
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'New Complaint', message: 'WiFi issue in Room 101', time: '5m ago', read: false },
     { id: 2, title: 'Leave Request', message: 'Rahul requested leave', time: '1h ago', read: false },
     { id: 3, title: 'System Update', message: 'Maintenance scheduled', time: '2h ago', read: true },
   ]);
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    setUser(userData);
+  }, []);
 
   const links = [
     {
@@ -69,6 +76,22 @@ export default function AdminLayout() {
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            {/* Logo Section */}
+            <div className="flex items-center gap-2 py-4 border-b border-neutral-200 dark:border-neutral-800">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
+                U
+              </div>
+              {open && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col"
+                >
+                  <span className="font-bold text-lg text-neutral-800 dark:text-white tracking-tight">UNISTAY</span>
+                </motion.div>
+              )}
+            </div>
+
             <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => (
                 <SidebarLink key={idx} link={link} />
@@ -90,17 +113,17 @@ export default function AdminLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-neutral-900 relative">
-        {/* Top Bar for Theme Toggle */}
         {/* Top Header Bar */}
-        <div className="flex items-center justify-end gap-4 p-4 border-b border-slate-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-40">
+        <div className="flex items-center justify-end gap-4 px-4 md:px-8 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md sticky top-0 z-40">
+          {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors relative"
+              className="p-2.5 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-all relative hover:text-primary-500 dark:hover:text-primary-400"
             >
               <Bell size={20} />
               {notifications.some(n => !n.read) && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-neutral-900"></span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-neutral-900"></span>
               )}
             </button>
 
@@ -147,12 +170,22 @@ export default function AdminLayout() {
             )}
           </div>
 
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors shadow-sm"
+            className="p-2.5 rounded-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-all shadow-sm hover:shadow-md"
             aria-label="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'dark' ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+          </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all font-medium text-sm"
+          >
+            <LogOut size={18} />
+            <span className="hidden md:inline">Logout</span>
           </button>
         </div>
 
