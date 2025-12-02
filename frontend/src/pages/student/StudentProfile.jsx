@@ -20,6 +20,34 @@ import config from '../../config';
 
 const API_BASE_URL = config.API_URL;
 
+const InfoField = ({ icon: Icon, label, value, field, editable = true, type = 'text', isEditing, editedData, onEdit }) => (
+  <div className="group relative">
+    <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-neutral-800/50 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-all">
+      <div className="p-2 rounded-lg bg-white dark:bg-neutral-700 shadow-sm">
+        <Icon size={20} className="text-primary-500" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+        {isEditing && editable ? (
+          <input
+            type={type}
+            value={editedData[field] || ''}
+            onChange={(e) => onEdit(field, e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        ) : (
+          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+            {value || 'Not provided'}
+          </p>
+        )}
+      </div>
+      {isEditing && editable && (
+        <Edit2 size={14} className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+      )}
+    </div>
+  </div>
+);
+
 export default function StudentProfile() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -83,34 +111,6 @@ export default function StudentProfile() {
       </div>
     );
   }
-
-  const InfoField = ({ icon: Icon, label, value, field, editable = true, type = 'text' }) => (
-    <div className="group relative">
-      <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-neutral-800/50 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-all">
-        <div className="p-2 rounded-lg bg-white dark:bg-neutral-700 shadow-sm">
-          <Icon size={20} className="text-primary-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
-          {isEditing && editable ? (
-            <input
-              type={type}
-              value={editedData[field] || ''}
-              onChange={(e) => handleEdit(field, e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          ) : (
-            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-              {value || 'Not provided'}
-            </p>
-          )}
-        </div>
-        {isEditing && editable && (
-          <Edit2 size={14} className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -231,34 +231,34 @@ export default function StudentProfile() {
       >
         {activeTab === 'personal' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={User} label="Full Name" value={user?.name} field="name" />
-            <InfoField icon={Mail} label="Email Address" value={user?.email} field="email" />
-            <InfoField icon={Phone} label="Phone Number" value={user?.phone} field="phone" />
-            <InfoField icon={Calendar} label="Date of Birth" value={user?.dob} field="dob" type="date" />
-            <InfoField icon={MapPin} label="Address" value={user?.address} field="address" />
-            <InfoField icon={User} label="Guardian Name" value={user?.guardianName} field="guardianName" />
-            <InfoField icon={Phone} label="Guardian Phone" value={user?.guardianPhone} field="guardianPhone" />
-            <InfoField icon={Mail} label="Guardian Email" value={user?.guardianEmail} field="guardianEmail" />
+            <InfoField icon={User} label="Full Name" value={user?.name} field="name" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Mail} label="Email Address" value={user?.email} field="email" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Phone} label="Phone Number" value={user?.phone} field="phone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Calendar} label="Date of Birth" value={user?.dob} field="dob" type="date" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={MapPin} label="Address" value={user?.address} field="address" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={User} label="Guardian Name" value={user?.guardianName} field="guardianName" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Phone} label="Guardian Phone" value={user?.guardianPhone} field="guardianPhone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Mail} label="Guardian Email" value={user?.guardianEmail} field="guardianEmail" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
           </div>
         )}
 
         {activeTab === 'academic' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={GraduationCap} label="Department" value={user?.department} field="department" />
-            <InfoField icon={Calendar} label="Year" value={user?.year} field="year" />
-            <InfoField icon={Building} label="Roll Number" value={user?.rollNumber} field="rollNumber" />
-            <InfoField icon={GraduationCap} label="Course" value={user?.course} field="course" />
-            <InfoField icon={Calendar} label="Semester" value={user?.semester} field="semester" />
-            <InfoField icon={Building} label="Batch" value={user?.batch} field="batch" />
+            <InfoField icon={GraduationCap} label="Department" value={user?.department} field="department" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Calendar} label="Year" value={user?.year} field="year" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Building} label="Roll Number" value={user?.rollNumber} field="rollNumber" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={GraduationCap} label="Course" value={user?.course} field="course" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Calendar} label="Semester" value={user?.semester} field="semester" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Building} label="Batch" value={user?.batch} field="batch" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
           </div>
         )}
 
         {activeTab === 'hostel' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={Home} label="Room Number" value={user?.room} field="room" editable={false} />
-            <InfoField icon={Building} label="Block" value={user?.block} field="block" editable={false} />
-            <InfoField icon={Calendar} label="Check-in Date" value={user?.checkInDate} field="checkInDate" type="date" editable={false} />
-            <InfoField icon={Shield} label="Status" value={user?.status} field="status" editable={false} />
+            <InfoField icon={Home} label="Room Number" value={user?.room} field="room" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Building} label="Block" value={user?.block} field="block" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Calendar} label="Check-in Date" value={user?.checkInDate} field="checkInDate" type="date" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+            <InfoField icon={Shield} label="Status" value={user?.status} field="status" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
           </div>
         )}
       </motion.div>
