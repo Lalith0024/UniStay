@@ -189,7 +189,7 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-white dark:bg-neutral-900">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 dark:bg-neutral-900">
           <Outlet />
         </div>
       </div>

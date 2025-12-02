@@ -86,5 +86,53 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-hide': {
+          /* IE and Edge */
+          '-ms-overflow-style': 'none',
+          /* Firefox */
+          'scrollbar-width': 'none',
+          /* Safari and Chrome */
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        },
+        '.scrollbar-thin': {
+          'scrollbar-width': 'thin',
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+        },
+        '.scrollbar-thumb-slate-300': {
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#cbd5e1',
+            borderRadius: '3px',
+          },
+        },
+        '.dark .scrollbar-thumb-neutral-600': {
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#525252',
+            borderRadius: '3px',
+          },
+        },
+        '.scrollbar-track-transparent': {
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+        },
+        '.hover\\:scrollbar-thumb-slate-400:hover': {
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#94a3b8',
+          },
+        },
+        '.dark .hover\\:scrollbar-thumb-neutral-500:hover': {
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#737373',
+          },
+        },
+      })
+    }
+  ],
 }

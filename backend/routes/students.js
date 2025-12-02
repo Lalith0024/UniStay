@@ -3,7 +3,7 @@ const router = express.Router();
 const { Student } = require('../models');
 const apiHandler = require('../utils/apiHandler');
 
-// GET Students (PSSF enabled)
+// GET Students 
 router.get('/', (req, res) => apiHandler(Student, req, res, ['name', 'room', 'email']));
 
 // Create Student
@@ -39,3 +39,5 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// above we did full crud and the endpoints once remember to test in local..

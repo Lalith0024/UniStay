@@ -3,7 +3,7 @@ const router = express.Router();
 const { Room } = require('../models');
 const apiHandler = require('../utils/apiHandler');
 
-// GET Rooms (PSSF enabled)
+// GET Rooms 
 router.get('/', (req, res) => apiHandler(Room, req, res, ['number', 'block']));
 
 // Create Room
@@ -37,3 +37,6 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// above we did full crud and the endpoints once remember to test in local..
+// before pushing to prod verify if the content type is not satisfied ig we missed the edge case
