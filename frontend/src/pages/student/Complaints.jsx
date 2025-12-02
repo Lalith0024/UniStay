@@ -109,7 +109,7 @@ export default function StudentComplaints() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newComplaint,
-          studentId: user._id,
+          studentId: user.studentId || user._id,
           status: 'Pending'
         })
       });

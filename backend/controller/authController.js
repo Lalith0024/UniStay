@@ -194,6 +194,16 @@ const login = async (req, res) => {
                 error: "Token generation failed"
             });
         }
+        let studentProfile = null;
+        if (user.role === 'student') {
+            try {
+                const Student = require("../models/Student");
+                studentProfile = await Student.findOne({ email: user.email });
+            } catch (err) {
+                console.error('Error fetching student profile:', err);
+            }
+        }
+
         console.log(`User ${user.email} logged in successfully`);
         res.status(200).json({
             message: "Login Successful",
@@ -203,7 +213,10 @@ const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 _id: user._id,
-                role: user.role || 'student'
+                role: user.role || 'student',
+                studentId: studentProfile ? studentProfile._id : null,
+                room: studentProfile ? studentProfile.room : null,
+                block: studentProfile ? studentProfile.block : null
             }
         });
     }

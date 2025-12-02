@@ -16,7 +16,9 @@ import {
   Shield,
   Clock
 } from 'lucide-react';
-import API_BASE_URL from '../../config';
+import config from '../../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function StudentProfile() {
   const [user, setUser] = useState(null);
@@ -210,8 +212,8 @@ export default function StudentProfile() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === tab
-                ? 'bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              ? 'bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)} Info

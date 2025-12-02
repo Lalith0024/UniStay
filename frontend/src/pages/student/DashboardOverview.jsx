@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import API_BASE_URL from '../../config';
+import config from '../../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null);
