@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import Pagination from '../../components/ui/Pagination';
-import { Check, X, Calendar, User } from 'lucide-react';
+import { Check, X, Calendar, User, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -18,7 +19,8 @@ const LeaveRequests = () => {
       const params = {
         page,
         limit: 6,
-        status: statusFilter
+        status: statusFilter,
+        search
       };
       const res = await axios.get(`${config.API_URL}/api/leaves`, { params });
       setLeaves(res.data.data);
@@ -32,8 +34,11 @@ const LeaveRequests = () => {
   };
 
   useEffect(() => {
-    fetchLeaves();
-  }, [page, statusFilter]);
+    const debounce = setTimeout(() => {
+      fetchLeaves();
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [page, statusFilter, search]);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
@@ -47,9 +52,24 @@ const LeaveRequests = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Leave Requests</h1>
+
+        {/* Search Input */}
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={20} />
+          <input
+            type="text"
+            placeholder="Search reason, room..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white shadow-sm"
+          />
+        </div>
+      </div>
+
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Leave Requests</h1>
-        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
+        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm w-full overflow-x-auto">
           {['All', 'Pending', 'Approved', 'Rejected'].map((status) => {
             const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
             const getStatusColor = () => {
@@ -72,8 +92,8 @@ const LeaveRequests = () => {
                   setPage(1);
                 }}
                 className={`relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden group ${isActive
-                    ? 'text-white shadow-lg scale-105'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
+                  ? 'text-white shadow-lg scale-105'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
                   }`}
               >
                 {isActive && (

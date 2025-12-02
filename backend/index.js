@@ -4,7 +4,6 @@ require("dotenv").config();
 
 const { connectDB } = require("./models/db");
 const authRouter = require("./routes/authRouter");
-const productRouter = require("./routes/productroute");
 
 const app = express();
 
@@ -26,7 +25,6 @@ app.get("/", (req, res) => {
 const apiRoutes = require('./routes');
 
 app.use("/auth", authRouter);
-app.use("/products", productRouter);
 app.use("/api", apiRoutes);
 
 app.listen(process.env.PORT || 8080, () => {

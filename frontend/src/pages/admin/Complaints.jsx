@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import Pagination from '../../components/ui/Pagination';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const Complaints = () => {
   const [complaints, setComplaints] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -20,7 +21,8 @@ const Complaints = () => {
       const params = {
         page,
         limit: 6,
-        status: statusFilter
+        status: statusFilter,
+        search
       };
       const res = await axios.get(`${config.API_URL}/api/complaints`, { params });
       setComplaints(res.data.data);
@@ -33,8 +35,11 @@ const Complaints = () => {
   };
 
   useEffect(() => {
-    fetchComplaints();
-  }, [page, statusFilter]);
+    const debounce = setTimeout(() => {
+      fetchComplaints();
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [page, statusFilter, search]);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
@@ -64,9 +69,24 @@ const Complaints = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Complaints</h1>
+
+        {/* Search Input */}
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={20} />
+          <input
+            type="text"
+            placeholder="Search issue, room..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white shadow-sm"
+          />
+        </div>
+      </div>
+
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Complaints</h1>
-        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
+        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm w-full overflow-x-auto">
           {['All', 'Pending', 'In Progress', 'Resolved', 'Rejected'].map((status) => {
             const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
             const getStatusColor = () => {

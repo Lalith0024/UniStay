@@ -165,13 +165,13 @@ const Students = () => {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={20} />
           <input
             type="text"
             placeholder="Search by name, room..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white"
+            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white"
           />
         </div>
 
@@ -308,7 +308,7 @@ const Students = () => {
         </div>
       )}
 
-      {/* Pagination */}
+
       <div className="px-6 py-4 border-t border-slate-200 dark:border-neutral-700">
         <Pagination
           currentPage={page}
@@ -318,7 +318,7 @@ const Students = () => {
       </div>
 
 
-      {/* Edit Modal */}
+
       <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Edit Student">
         <form onSubmit={handleUpdate} className="space-y-4">
           <div>
