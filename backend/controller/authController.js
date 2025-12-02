@@ -72,6 +72,25 @@ const signup = async (req, res) => {
         usermodel.password = await bcrypt.hash(password, 10);
         await usermodel.save();
 
+        // Auto-create Student profile if role is student
+        if (userRole === 'student') {
+            try {
+                const Student = require("../models/Student");
+                const newStudent = new Student({
+                    name: trimmedName,
+                    email: trimmedEmail,
+                    password: usermodel.password, // Sync password
+                    role: 'student',
+                    status: 'Active'
+                });
+                await newStudent.save();
+                console.log(`Auto-created Student profile for ${trimmedEmail}`);
+            } catch (err) {
+                console.error('Error auto-creating student profile during signup:', err);
+                // Continue even if student creation fails, can be fixed at login
+            }
+        }
+
         // Generate token for auto-login after signup
         const token = jwt.sign(
             { email: usermodel.email, _id: usermodel._id, role: usermodel.role },
@@ -110,9 +129,8 @@ const signup = async (req, res) => {
             });
         }
         return res.status(500).json({
-            message: "An error occurred during registration. Please try again.",
-
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+            message: "Internal Server Error",
+            error: err.message
         });
     }
 }
@@ -199,8 +217,22 @@ const login = async (req, res) => {
             try {
                 const Student = require("../models/Student");
                 studentProfile = await Student.findOne({ email: user.email });
+
+                // Self-healing: Create Student profile if missing
+                if (!studentProfile) {
+                    console.log(`Student profile missing for ${user.email}, creating now...`);
+                    studentProfile = new Student({
+                        name: user.name,
+                        email: user.email,
+                        password: user.password,
+                        role: 'student',
+                        status: 'Active'
+                    });
+                    await studentProfile.save();
+                    console.log(`Auto-created missing Student profile for ${user.email}`);
+                }
             } catch (err) {
-                console.error('Error fetching student profile:', err);
+                console.error('Error fetching/creating student profile:', err);
             }
         }
 
