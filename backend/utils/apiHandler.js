@@ -44,7 +44,46 @@ const apiHandler = async (Model, req, res, searchFields = []) => {
       queryBuilder = queryBuilder.populate('studentId', 'name email room block phone department year');
     }
 
-    const docs = await queryBuilder;
+    let docs = await queryBuilder;
+
+    // Handle cases where studentId might be a User ID instead of Student ID
+    if (Model.modelName === 'Complaint' || Model.modelName === 'Leave') {
+      const User = require('../models/user');
+      const Student = require('../models/Student');
+
+      // Check each document and fix missing student data
+      docs = await Promise.all(docs.map(async (doc) => {
+        const docObj = doc.toObject();
+
+        // If studentId is not populated or missing name, try to find student by User ID
+        if (!docObj.studentId || !docObj.studentId.name) {
+          try {
+            // Try to find User by the ID
+            const user = await User.findById(doc.studentId);
+            if (user && user.email) {
+              // Find corresponding Student by email
+              const student = await Student.findOne({ email: user.email });
+              if (student) {
+                docObj.studentId = {
+                  _id: student._id,
+                  name: student.name,
+                  email: student.email,
+                  room: student.room,
+                  block: student.block,
+                  phone: student.phone,
+                  department: student.department,
+                  year: student.year
+                };
+              }
+            }
+          } catch (err) {
+            console.error('Error resolving student:', err);
+          }
+        }
+
+        return docObj;
+      }));
+    }
 
     res.json({
       data: docs,

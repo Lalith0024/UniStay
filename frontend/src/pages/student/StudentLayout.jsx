@@ -77,7 +77,7 @@ export default function StudentLayout() {
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo Section */}
-            <div className="flex items-center gap-2 px-2 py-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center gap-2 py-4 border-b border-neutral-200 dark:border-neutral-800">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
                 U
               </div>

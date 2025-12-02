@@ -67,14 +67,14 @@ export default function StudentLeaves() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-      if (!user._id) {
+      if (!user._id && !user.studentId) {
         alert('User not found. Please login again.');
         return;
       }
 
       const payload = {
         ...newLeave,
-        studentId: user._id,
+        studentId: user.studentId || user._id,
         status: 'Pending'
       };
 
