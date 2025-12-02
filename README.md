@@ -1,4 +1,4 @@
-# 🏨 UniStay - Modern Hostel Management System
+# UniStay - Modern Hostel Management System
 
 <div align="center">
 
@@ -144,15 +144,11 @@ Built with a focus on **UI/UX excellence**, UniStay features a modern, responsiv
     ```
 
 4.  **Access the App**
-    *   Frontend: `http://localhost:5173`
-    *   Backend: `http://localhost:8080`
+    *   Frontend: https://uni-stay-web-hostel-stay.vercel.app/
+    *   Backend: https://unistay-5gt0.onrender.com
 
 ---
 
 <div align="center">
   <p>Made with ❤️ by <strong>Lalith</strong></p>
-  <p>
-    <a href="https://github.com/Lalith0024">GitHub</a> •
-    <a href="#">LinkedIn</a>
-  </p>
 </div>
