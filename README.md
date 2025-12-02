@@ -151,8 +151,4 @@ Built with a focus on **UI/UX excellence**, UniStay features a modern, responsiv
 
 <div align="center">
   <p>Made with ❤️ by <strong>Lalith</strong></p>
-  <p>
-     •
-    <a href="https://www.linkedin.com/in/lalithendra-kasula-1b90b7323/">LinkedIn</a>
-  </p>
 </div>
