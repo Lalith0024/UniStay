@@ -6,6 +6,17 @@ const apiHandler = require('../utils/apiHandler');
 // fetching the complaints
 router.get('/', (req, res) => apiHandler(Complaint, req, res, ['issue', 'status']));
 
+// creating a new complaint
+router.post('/', async (req, res) => {
+  try {
+    const complaint = new Complaint(req.body);
+    await complaint.save();
+    res.status(201).json({ success: true, data: complaint });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
 // updating the complaint status
 router.patch('/:id', async (req, res) => {
   try {

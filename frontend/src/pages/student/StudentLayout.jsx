@@ -44,11 +44,6 @@ export default function StudentLayout() {
       icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
     },
     {
-      label: "My Room",
-      href: "/student/room",
-      icon: <Home className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-    },
-    {
       label: "Complaints",
       href: "/student/complaints",
       icon: <FileText className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
@@ -67,11 +62,6 @@ export default function StudentLayout() {
       label: "Notices",
       href: "/student/notices",
       icon: <Bell className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-    },
-    {
-      label: "Messages",
-      href: "/student/messages",
-      icon: <MessageSquare className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
     },
   ];
 
@@ -129,13 +119,11 @@ export default function StudentLayout() {
           <div className="flex-1">
             <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
               {location.pathname.includes('dashboard') ? 'Dashboard' :
-                location.pathname.includes('room') ? 'My Room' :
-                  location.pathname.includes('complaints') ? 'Complaints' :
-                    location.pathname.includes('leaves') ? 'Leave Requests' :
-                      location.pathname.includes('payments') ? 'Payments' :
-                        location.pathname.includes('notices') ? 'Notices' :
-                          location.pathname.includes('messages') ? 'Messages' :
-                            location.pathname.includes('profile') ? 'My Profile' : 'Student Portal'}
+                location.pathname.includes('complaints') ? 'Complaints' :
+                  location.pathname.includes('leaves') ? 'Leave Requests' :
+                    location.pathname.includes('payments') ? 'Payments' :
+                      location.pathname.includes('notices') ? 'Notices' :
+                        location.pathname.includes('profile') ? 'My Profile' : 'Student Portal'}
             </h1>
           </div>
 

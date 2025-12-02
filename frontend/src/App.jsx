@@ -1,35 +1,36 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import { ThemeProvider } from './context/ThemeContext';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Landing from "./pages/Landing.jsx";
+import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
 
-// Admin
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminDashboardOverview from './pages/admin/DashboardOverview';
-import AdminStudents from './pages/admin/Students';
-import AdminRooms from './pages/admin/Rooms';
-import AdminComplaints from './pages/admin/Complaints';
-import AdminLeaveRequests from './pages/admin/LeaveRequests';
-import AdminNotices from './pages/admin/Notices';
+// Admin pages
+import AdminLayout from "./pages/admin/AdminLayout.jsx";
+import AdminDashboardOverview from "./pages/admin/DashboardOverview.jsx";
+import AdminStudents from "./pages/admin/Students.jsx";
+import AdminRooms from "./pages/admin/Rooms.jsx";
+import AdminComplaints from "./pages/admin/Complaints.jsx";
+import AdminLeaveRequests from "./pages/admin/LeaveRequests.jsx";
+import AdminNotices from "./pages/admin/Notices.jsx";
 
-// Student
-import StudentLayout from './pages/student/StudentLayout';
-import StudentDashboardOverview from './pages/student/DashboardOverview';
-import StudentProfile from './pages/student/StudentProfile';
-import StudentComplaints from './pages/student/Complaints';
-import StudentLeaves from './pages/student/Leaves';
-import StudentPayments from './pages/student/Payments';
-import StudentNotices from './pages/student/Notices';
-import StudentMessages from './pages/student/Messages';
+// Student pages
+import StudentLayout from "./pages/student/StudentLayout.jsx";
+import StudentDashboardOverview from "./pages/student/DashboardOverview.jsx";
+import StudentProfile from "./pages/student/StudentProfile.jsx";
+import StudentComplaints from "./pages/student/Complaints.jsx";
+import StudentLeaves from "./pages/student/Leaves.jsx";
+import StudentNotices from "./pages/student/Notices.jsx";
+import StudentPayments from "./pages/student/Payments.jsx";
 
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import PublicRoute from "./components/PublicRoute.jsx";
 
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+
+import "react-toastify/dist/ReactToastify.css";
+
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
 
           {/* Public */}
           <Route path="/" element={<Landing />} />
+
           <Route
             path="/login"
             element={
@@ -48,6 +50,7 @@ function App() {
               </PublicRoute>
             }
           />
+
           <Route
             path="/signup"
             element={
@@ -73,7 +76,6 @@ function App() {
             <Route path="leaves" element={<StudentLeaves />} />
             <Route path="payments" element={<StudentPayments />} />
             <Route path="notices" element={<StudentNotices />} />
-            <Route path="messages" element={<StudentMessages />} />
           </Route>
 
           {/* Legacy redirect */}
@@ -83,7 +85,7 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute requiredRole={['admin', 'warden']}>
+              <ProtectedRoute requiredRole={["admin", "warden"]}>
                 <AdminLayout />
               </ProtectedRoute>
             }

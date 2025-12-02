@@ -8,7 +8,7 @@ import Navbar from '../components/Navbar';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { config } from '../config';
-import campusImage from '/src/assets/image.png';
+import campusImage from '../assets/image.png';
 
 
 const Signup = () => {
