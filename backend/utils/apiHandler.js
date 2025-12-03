@@ -46,45 +46,67 @@ const apiHandler = async (Model, req, res, searchFields = []) => {
       const User = require('../models/user');
       const Student = require('../models/Student');
 
-      docs = await Promise.all(docs.map(async (doc) => {
-        // Get the original ID (could be Student ID or User ID)
-        const originalId = doc.studentId;
+      // 1. Collect all unique IDs
+      const allIds = [...new Set(docs.map(doc => doc.studentId).filter(id => id))];
 
-        if (!originalId) return doc;
+      if (allIds.length > 0) {
+        // 2. Batch fetch Students
+        const students = await Student.find({ _id: { $in: allIds } })
+          .select('name email room block phone department year')
+          .lean();
 
-        let student = null;
+        // Map for fast lookup
+        const studentMap = new Map(students.map(s => [s._id.toString(), s]));
 
-        try {
-          // 1. Try to find as Student first
-          student = await Student.findById(originalId).select('name email room block phone department year');
+        // 3. Identify missing IDs (potential Users)
+        const foundStudentIds = new Set(students.map(s => s._id.toString()));
+        const missingIds = allIds.filter(id => !foundStudentIds.has(id.toString()));
 
-          // 2. If not found, try to find as User (legacy data fix)
-          if (!student) {
-            const user = await User.findById(originalId);
-            if (user && user.email) {
-              // Find corresponding Student by email
-              student = await Student.findOne({ email: user.email }).select('name email room block phone department year');
+        let userMap = new Map();
+        let studentByEmailMap = new Map();
+
+        // 4. Batch fetch Users if needed
+        if (missingIds.length > 0) {
+          const users = await User.find({ _id: { $in: missingIds } }).select('email').lean();
+          const userEmails = users.map(u => u.email).filter(e => e);
+
+          if (userEmails.length > 0) {
+            const studentsByEmail = await Student.find({ email: { $in: userEmails } })
+              .select('name email room block phone department year')
+              .lean();
+
+            // Map email -> Student
+            studentsByEmail.forEach(s => studentByEmailMap.set(s.email, s));
+            // Map UserID -> User Email
+            users.forEach(u => userMap.set(u._id.toString(), u.email));
+          }
+        }
+
+        // 5. Attach data to docs
+        docs = docs.map(doc => {
+          const idStr = doc.studentId ? doc.studentId.toString() : null;
+          if (!idStr) return doc;
+
+          // Try direct student match
+          if (studentMap.has(idStr)) {
+            doc.studentId = studentMap.get(idStr);
+          }
+          // Try User -> Email -> Student match
+          else if (userMap.has(idStr)) {
+            const email = userMap.get(idStr);
+            if (studentByEmailMap.has(email)) {
+              doc.studentId = studentByEmailMap.get(email);
+            } else {
+              doc.studentId = { name: 'Unknown Student', email: 'N/A', room: 'N/A', block: '-' };
             }
           }
-        } catch (err) {
-          console.error('Error resolving student in apiHandler:', err);
-        }
-
-        // 3. Attach student data if found
-        if (student) {
-          doc.studentId = student;
-        } else {
-          // Fallback object if absolutely nothing found
-          doc.studentId = {
-            name: 'Unknown Student',
-            email: 'N/A',
-            room: 'N/A',
-            block: '-'
-          };
-        }
-
-        return doc;
-      }));
+          // Fallback
+          else {
+            doc.studentId = { name: 'Unknown Student', email: 'N/A', room: 'N/A', block: '-' };
+          }
+          return doc;
+        });
+      }
     }
 
     res.json({

@@ -22,6 +22,11 @@ app.get("/", (req, res) => {
   });
 });
 
+// Ping endpoint for warm-up
+app.get("/ping", (req, res) => {
+  res.status(200).send("pong");
+});
+
 const apiRoutes = require('./routes');
 
 app.use("/auth", authRouter);

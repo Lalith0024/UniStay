@@ -32,7 +32,14 @@ import { ThemeProvider } from "./context/ThemeContext.jsx";
 import "react-toastify/dist/ReactToastify.css";
 
 
+import config from "./config";
+
 function App() {
+  React.useEffect(() => {
+    // Warm up the server
+    fetch(`${config.API_URL}/ping`).catch(() => { });
+  }, []);
+
   return (
     <ThemeProvider>
       <div className="App">

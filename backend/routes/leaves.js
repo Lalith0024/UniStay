@@ -4,7 +4,7 @@ const { Leave, Student } = require('../models');
 const apiHandler = require('../utils/apiHandler');
 const ensureAuthenticated = require('../middleware/auth');
 
-// fetching the leaves - with authentication
+// fetching the leaves
 router.get('/', ensureAuthenticated, async (req, res) => {
   try {
     // If user is a student, force filter by their studentId from JWT token
@@ -25,7 +25,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
   }
 });
 
-// creating a leave - with authentication
+// creating a leave
 router.post('/', ensureAuthenticated, async (req, res) => {
   try {
     const leave = await Leave.create(req.body);
