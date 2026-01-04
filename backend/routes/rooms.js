@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { Room } = require('../models');
 const apiHandler = require('../utils/apiHandler');
+const ensureAuthenticated = require('../middleware/auth');
 
 // GET Rooms 
-router.get('/', (req, res) => apiHandler(Room, req, res, ['number', 'block']));
+router.get('/', ensureAuthenticated, (req, res) => apiHandler(Room, req, res, ['number', 'block']));
 
 // Create Room
-router.post('/', async (req, res) => {
+router.post('/', ensureAuthenticated, async (req, res) => {
   try {
     const room = await Room.create(req.body);
     res.status(201).json(room);
@@ -17,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update Room
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', ensureAuthenticated, async (req, res) => {
   try {
     const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(room);
@@ -27,7 +28,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete Room
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', ensureAuthenticated, async (req, res) => {
   try {
     await Room.findByIdAndDelete(req.params.id);
     res.json({ message: 'Room deleted successfully' });

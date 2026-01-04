@@ -12,7 +12,8 @@ import {
   Bell,
   MessageSquare,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -33,93 +34,106 @@ export default function StudentDashboard() {
   const [recentNotices, setRecentNotices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock Data for Fallback
-  const mockData = {
-    stats: {
-      complaints: { total: 12, pending: 3, resolved: 9 },
-      leaves: { total: 5, pending: 1, approved: 4 },
-      payments: { due: 8500, paid: 42500 },
-      notices: 8
-    },
-    recentComplaints: [
-      { _id: '1', issue: 'WiFi Connectivity', status: 'In Progress', priority: 'High', description: 'Internet is very slow in room 304 since yesterday.', date: new Date().toISOString() },
-      { _id: '2', issue: 'Leaking Tap', status: 'Pending', priority: 'Medium', description: 'Bathroom tap is leaking continuously.', date: new Date(Date.now() - 86400000).toISOString() },
-      { _id: '3', issue: 'AC Not Cooling', status: 'Resolved', priority: 'High', description: 'AC unit needs servicing.', date: new Date(Date.now() - 172800000).toISOString() }
-    ],
-    recentNotices: [
-      { _id: '1', title: 'Hostel Night 2024', priority: 'High', description: 'Join us for a night of music, dance, and fun on Dec 15th!', date: new Date().toISOString() },
-      { _id: '2', title: 'Maintenance Schedule', priority: 'Medium', description: 'Water tank cleaning scheduled for next Sunday.', date: new Date(Date.now() - 86400000).toISOString() },
-      { _id: '3', title: 'Exam Schedule Released', priority: 'High', description: 'Final semester exam dates have been announced.', date: new Date(Date.now() - 172800000).toISOString() }
-    ],
-    activityData: [
-      { month: 'Jul', complaints: 1, leaves: 0 },
-      { month: 'Aug', complaints: 2, leaves: 1 },
-      { month: 'Sep', complaints: 0, leaves: 2 },
-      { month: 'Oct', complaints: 3, leaves: 1 },
-      { month: 'Nov', complaints: 1, leaves: 0 },
-      { month: 'Dec', complaints: 2, leaves: 1 },
-    ]
-  };
+  const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const getLast6MonthsData = (complaintsList, leavesList) => {
+    const data = [];
+    const today = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthName = d.toLocaleString('default', { month: 'short' });
+      const monthIdx = d.getMonth();
+      const year = d.getFullYear();
+
+      const complaintsCount = complaintsList.filter(c => {
+        const cDate = new Date(c.date || c.createdAt);
+        return cDate.getMonth() === monthIdx && cDate.getFullYear() === year;
+      }).length;
+
+      const leavesCount = leavesList.filter(l => {
+        const lDate = new Date(l.createdAt);
+        return lDate.getMonth() === monthIdx && lDate.getFullYear() === year;
+      }).length;
+
+      data.push({
+        month: monthName,
+        complaints: complaintsCount,
+        leaves: leavesCount
+      });
+    }
+    return data;
+  };
 
   const fetchDashboardData = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       setUser(userData);
 
-      // Fetch complaints
-      const complaintsRes = await fetch(`${API_BASE_URL}/api/complaints?limit=5&sort=createdAt:desc`);
+      const studentId = userData.studentId || userData._id;
+
+      // Fetch complaints (limit 100 to calculate sufficient stats/chart data)
+      const complaintsRes = await fetch(`${API_BASE_URL}/api/complaints?limit=100&sort=createdAt:desc&studentId=${studentId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       const complaintsData = await complaintsRes.json();
+      const complaintsList = complaintsData.data || [];
 
-      // Fetch leaves
-      const leavesRes = await fetch(`${API_BASE_URL}/api/leaves?limit=5&sort=createdAt:desc`);
+
+      const leavesRes = await fetch(`${API_BASE_URL}/api/leaves?limit=100&sort=createdAt:desc&studentId=${studentId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       const leavesData = await leavesRes.json();
+      const leavesList = leavesData.data || [];
 
-      // Fetch notices
-      const noticesRes = await fetch(`${API_BASE_URL}/api/notices?limit=5&sort=createdAt:desc`);
+
+      const noticesRes = await fetch(`${API_BASE_URL}/api/notices?limit=5&sort=createdAt:desc`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       const noticesData = await noticesRes.json();
+      const noticesList = noticesData.data || [];
 
-      // Use API data if available, otherwise fallback to mock data
-      const hasComplaints = complaintsData.data && complaintsData.data.length > 0;
-      const hasLeaves = leavesData.data && leavesData.data.length > 0;
-      const hasNotices = noticesData.data && noticesData.data.length > 0;
+      // Set Recent Items
+      setRecentComplaints(complaintsList.slice(0, 3));
+      setRecentLeaves(leavesList.slice(0, 3));
+      setRecentNotices(noticesList.slice(0, 3));
 
-      setRecentComplaints(hasComplaints ? complaintsData.data : mockData.recentComplaints);
-      setRecentLeaves(hasLeaves ? leavesData.data : []); // Leaves usually personal, maybe don't mock list if empty
-      setRecentNotices(hasNotices ? noticesData.data : mockData.recentNotices);
-
-      // Calculate stats
-      const pendingComplaints = hasComplaints ? (complaintsData.data?.filter(c => c.status === 'Pending').length || 0) : mockData.stats.complaints.pending;
-      const resolvedComplaints = hasComplaints ? (complaintsData.data?.filter(c => c.status === 'Resolved').length || 0) : mockData.stats.complaints.resolved;
-
-      const pendingLeaves = hasLeaves ? (leavesData.data?.filter(l => l.status === 'Pending').length || 0) : mockData.stats.leaves.pending;
-      const approvedLeaves = hasLeaves ? (leavesData.data?.filter(l => l.status === 'Approved').length || 0) : mockData.stats.leaves.approved;
-
+      // Calculate Stats
       setStats({
         complaints: {
-          total: hasComplaints ? (complaintsData.meta?.total || 0) : mockData.stats.complaints.total,
-          pending: pendingComplaints,
-          resolved: resolvedComplaints
+          total: complaintsData.meta?.total || 0,
+          pending: complaintsList.filter(c => c.status === 'Pending').length,
+          resolved: complaintsList.filter(c => c.status === 'Resolved').length
         },
         leaves: {
-          total: hasLeaves ? (leavesData.meta?.total || 0) : mockData.stats.leaves.total,
-          pending: pendingLeaves,
-          approved: approvedLeaves
+          total: leavesData.meta?.total || 0,
+          pending: leavesList.filter(l => l.status === 'Pending').length,
+          approved: leavesList.filter(l => l.status === 'Approved').length
         },
-        payments: mockData.stats.payments, // Mock payments for now
-        notices: hasNotices ? (noticesData.meta?.total || 0) : mockData.stats.notices
+        payments: { due: 0, paid: 0 },
+        notices: noticesData.meta?.total || 0
       });
+
+      // Calculate Chart Data
+      setChartData(getLast6MonthsData(complaintsList, leavesList));
 
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      // Fallback to full mock data on error
-      setRecentComplaints(mockData.recentComplaints);
-      setRecentNotices(mockData.recentNotices);
-      setStats(mockData.stats);
+      setRecentComplaints([]);
+      setRecentLeaves([]);
+      setRecentNotices([]);
+      setStats({
+        complaints: { total: 0, pending: 0, resolved: 0 },
+        leaves: { total: 0, pending: 0, approved: 0 },
+        payments: { due: 0, paid: 0 },
+        notices: 0
+      });
+      setChartData([]);
       setLoading(false);
     }
   };
@@ -307,7 +321,7 @@ export default function StudentDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockData.activityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorComplaints" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
@@ -455,8 +469,17 @@ export default function StudentDashboard() {
           <div className="space-y-4">
             {recentComplaints.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                <CheckCircle size={40} className="mb-2 opacity-50" />
-                <p>No complaints yet</p>
+                <div className="w-16 h-16 bg-slate-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center mb-3">
+                  <AlertCircle size={32} className="opacity-50" />
+                </div>
+                <p className="font-medium mb-2">No active complaints</p>
+                <Link
+                  to="/student/complaints"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 mt-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors shadow-lg hover:shadow-primary-500/25"
+                >
+                  <Plus size={18} />
+                  <span>New Complaint</span>
+                </Link>
               </div>
             ) : (
               recentComplaints.slice(0, 3).map((complaint) => (

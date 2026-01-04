@@ -36,8 +36,7 @@ router.post('/', ensureAuthenticated, async (req, res) => {
 });
 
 // updating the leave status
-
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', ensureAuthenticated, async (req, res) => {
   try {
     const { status } = req.body;
     const leave = await Leave.findByIdAndUpdate(
@@ -52,8 +51,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // checkoutleave
-
-router.patch('/:id/checkout', async (req, res) => {
+router.patch('/:id/checkout', ensureAuthenticated, async (req, res) => {
   try {
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
@@ -70,7 +68,7 @@ router.patch('/:id/checkout', async (req, res) => {
 });
 
 // Checkin Leave
-router.patch('/:id/checkin', async (req, res) => {
+router.patch('/:id/checkin', ensureAuthenticated, async (req, res) => {
   try {
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,

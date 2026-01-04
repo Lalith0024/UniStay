@@ -115,7 +115,10 @@ export default function StudentLeaves() {
   const handleCheckout = async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/leaves/${id}/checkout`, {
-        method: 'PATCH'
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       if (response.ok) fetchLeaves();
     } catch (error) {
@@ -126,7 +129,10 @@ export default function StudentLeaves() {
   const handleCheckin = async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/leaves/${id}/checkin`, {
-        method: 'PATCH'
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       if (response.ok) fetchLeaves();
     } catch (error) {

@@ -38,14 +38,7 @@ export default function StudentComplaints() {
     priority: 'Medium'
   });
 
-  // Mock Data
-  const mockComplaints = [
-    { _id: '1', issue: 'WiFi Connectivity', status: 'In Progress', priority: 'High', description: 'Internet is very slow in room 304 since yesterday.', date: new Date().toISOString() },
-    { _id: '2', issue: 'Leaking Tap', status: 'Pending', priority: 'Medium', description: 'Bathroom tap is leaking continuously.', date: new Date(Date.now() - 86400000).toISOString() },
-    { _id: '3', issue: 'AC Not Cooling', status: 'Resolved', priority: 'High', description: 'AC unit needs servicing.', date: new Date(Date.now() - 172800000).toISOString() },
-    { _id: '4', issue: 'Broken Chair', status: 'Pending', priority: 'Low', description: 'Study chair leg is broken.', date: new Date(Date.now() - 259200000).toISOString() },
-    { _id: '5', issue: 'Light Bulb Fused', status: 'Resolved', priority: 'Low', description: 'Main room light is not working.', date: new Date(Date.now() - 345600000).toISOString() }
-  ];
+
 
   useEffect(() => {
     fetchComplaints();
@@ -81,25 +74,16 @@ export default function StudentComplaints() {
         setTotalPages(data.meta?.totalPages || 1);
         setTotalComplaints(data.meta?.total || 0);
       } else {
-        // Fallback to mock data if API returns empty (for demo purposes)
-        // Only use mock data if no search/filter is active to avoid confusion
-        if (!searchTerm && filterStatus === 'all' && filterPriority === 'all') {
-          setComplaints(mockComplaints);
-          setTotalPages(1);
-          setTotalComplaints(mockComplaints.length);
-        } else {
-          setComplaints([]);
-          setTotalPages(1);
-          setTotalComplaints(0);
-        }
+        setComplaints([]);
+        setTotalPages(1);
+        setTotalComplaints(0);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching complaints:', error);
-      // Fallback to mock data on error
-      setComplaints(mockComplaints);
+      setComplaints([]);
       setTotalPages(1);
-      setTotalComplaints(mockComplaints.length);
+      setTotalComplaints(0);
       setLoading(false);
     }
   };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
   Mail,
@@ -14,36 +14,39 @@ import {
   GraduationCap,
   Home,
   Shield,
-  Clock
+  Clock,
+  Briefcase,
+  IdCard,
+  Hash,
+  ChevronRight,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import config from '../../config';
 
 const API_BASE_URL = config.API_URL;
 
 const InfoField = ({ icon: Icon, label, value, field, editable = true, type = 'text', isEditing, editedData, onEdit }) => (
-  <div className="group relative">
-    <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-neutral-800/50 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-all">
-      <div className="p-2 rounded-lg bg-white dark:bg-neutral-700 shadow-sm">
-        <Icon size={20} className="text-primary-500" />
+  <div className="relative">
+    <div className="flex items-start gap-4 p-5 rounded-2xl bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 shadow-sm transition-all duration-300">
+      <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400">
+        <Icon size={20} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 dark:text-slate-500 mb-1">{label}</p>
         {isEditing && editable ? (
           <input
             type={type}
             value={editedData[field] || ''}
             onChange={(e) => onEdit(field, e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-0 py-1 border-b-2 border-primary-500 bg-transparent text-slate-900 dark:text-white focus:outline-none transition-all font-semibold"
           />
         ) : (
-          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+          <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
             {value || 'Not provided'}
           </p>
         )}
       </div>
-      {isEditing && editable && (
-        <Edit2 size={14} className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-      )}
     </div>
   </div>
 );
@@ -63,8 +66,6 @@ export default function StudentProfile() {
   const fetchUserProfile = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      // In a real scenario, fetch from API using user ID
-      // For now, using localStorage data
       setUser(userData);
       setEditedData(userData);
       setLoading(false);
@@ -81,17 +82,12 @@ export default function StudentProfile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // API call to update profile
-      // await fetch(`${API_BASE_URL}/api/students/${user._id}`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(editedData)
-      // });
-
-      // Update localStorage
+      // API call to update profile would go here
       localStorage.setItem('user', JSON.stringify(editedData));
       setUser(editedData);
       setIsEditing(false);
+      // Notify other components
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error('Error updating profile:', error);
     } finally {
@@ -106,98 +102,87 @@ export default function StudentProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-12 h-12 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Hero Section */}
+    <div className="space-y-8 pb-12">
+      {/* Dynamic Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 via-primary-600 to-teal-500 p-8 md:p-12"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-teal-400 dark:from-primary-900 dark:via-primary-800 dark:to-teal-900 p-8 md:p-10 shadow-xl shadow-primary-500/20"
       >
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-teal-400/10 rounded-full blur-3xl"></div>
+        {/* Background Patterns */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 p-12 opacity-10">
+            <Sparkles size={120} className="text-white" />
+          </div>
+          <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl mix-blend-overlay"></div>
         </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-          {/* Profile Picture */}
-          <div className="relative group">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 shadow-2xl flex items-center justify-center overflow-hidden">
-              {user?.image ? (
-                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-6xl md:text-7xl font-bold text-white">
-                  {user?.name?.charAt(0) || 'S'}
-                </span>
-              )}
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Avatar with Status Ring */}
+            <div className="relative">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-white/20 backdrop-blur-md border-4 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
+                {user?.image ? (
+                  <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <User size={60} className="text-white/80" />
+                )}
+              </div>
+              <div className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-emerald-400 border-4 border-primary-500 dark:border-primary-900 flex items-center justify-center shadow-lg">
+                <CheckCircle2 size={16} className="text-white" />
+              </div>
             </div>
-            {isEditing && (
-              <button className="absolute bottom-2 right-2 p-3 rounded-full bg-white text-primary-600 shadow-lg hover:shadow-xl transition-all">
-                <Camera size={18} />
-              </button>
-            )}
-          </div>
 
-          {/* Profile Info */}
-          <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">
+            {/* Profile Core Info */}
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
                 {user?.name || 'Student Name'}
-              </h1>
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium">
-                <Shield size={16} />
-                {user?.status || 'Active'}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-white/90">
-              <div className="flex items-center gap-2">
-                <Mail size={16} />
-                <span className="text-sm">{user?.email || 'email@example.com'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Home size={16} />
-                <span className="text-sm">Room {user?.room || 'N/A'} • Block {user?.block || 'N/A'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={16} />
-                <span className="text-sm">Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString()}</span>
+              </h2>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-medium">
+                  <Clock size={14} />
+                  Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-medium">
+                  <Shield size={14} />
+                  {user?.status || 'Active'}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Edit Button */}
-          <div className="flex gap-2">
+          {/* Action Center */}
+          <div className="flex flex-col sm:flex-row gap-3">
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-primary-600 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white text-primary-600 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all"
               >
                 <Edit2 size={18} />
-                <span>Edit Profile</span>
+                Edit Profile
               </button>
             ) : (
               <>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-primary-600 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white text-primary-600 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50"
                 >
-                  <Save size={18} />
-                  <span>{saving ? 'Saving...' : 'Save'}</span>
+                  {saving ? 'Saving...' : <><Save size={18} /> Save Details</>}
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/20 backdrop-blur-sm text-white font-semibold hover:bg-white/30 transition-all"
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/20 backdrop-blur-md text-white font-bold text-sm hover:bg-white/30 transition-all"
                 >
                   <X size={18} />
-                  <span>Cancel</span>
+                  Cancel
                 </button>
               </>
             )}
@@ -205,112 +190,87 @@ export default function StudentProfile() {
         </div>
       </motion.div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-slate-100 dark:bg-neutral-800 rounded-2xl">
-        {['personal', 'academic', 'hostel'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === tab
-              ? 'bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)} Info
-          </button>
-        ))}
-      </div>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Navigation Sidebar */}
+        <div className="lg:col-span-1 space-y-2">
+          {[
+            { id: 'personal', label: 'Personal Info', icon: User, desc: 'Identity & Contacts' },
+            { id: 'academic', label: 'Academic Details', icon: GraduationCap, desc: 'College Records' },
+            { id: 'hostel', label: 'Hostel Info', icon: Home, desc: 'Room & Allotment' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group ${activeTab === tab.id
+                  ? 'bg-white dark:bg-neutral-800 shadow-xl shadow-slate-200/50 dark:shadow-black/20 text-primary-600 dark:text-primary-400'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
+                }`}
+            >
+              <div className={`p-3 rounded-xl ${activeTab === tab.id ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-slate-100 dark:bg-neutral-800'}`}>
+                <tab.icon size={20} />
+              </div>
+              <div className="text-left overflow-hidden">
+                <p className="font-bold text-sm">{tab.label}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{tab.desc}</p>
+              </div>
+              {activeTab === tab.id && <ChevronRight size={18} className="ml-auto" />}
+            </button>
+          ))}
+        </div>
 
-      {/* Content Sections */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-neutral-800 rounded-2xl p-6 md:p-8 shadow-lg border border-slate-200 dark:border-neutral-700"
-      >
-        {activeTab === 'personal' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={User} label="Full Name" value={user?.name} field="name" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Mail} label="Email Address" value={user?.email} field="email" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Phone} label="Phone Number" value={user?.phone} field="phone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Calendar} label="Date of Birth" value={user?.dob} field="dob" type="date" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={MapPin} label="Address" value={user?.address} field="address" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={User} label="Guardian Name" value={user?.guardianName} field="guardianName" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Phone} label="Guardian Phone" value={user?.guardianPhone} field="guardianPhone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Mail} label="Guardian Email" value={user?.guardianEmail} field="guardianEmail" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-          </div>
-        )}
+        {/* Dynamic Detail Panes */}
+        <div className="lg:col-span-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              {activeTab === 'personal' && (
+                <>
+                  <InfoField icon={User} label="Full Name" value={user?.name} field="name" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Mail} label="Official Email" value={user?.email} field="email" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Phone} label="Mobile Number" value={user?.phone} field="phone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Calendar} label="Date of Birth" value={user?.dob} field="dob" type="date" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={MapPin} label="Permanent Address" value={user?.address} field="address" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={User} label="Guardian Name" value={user?.guardianName} field="guardianName" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Phone} label="Guardian Contact" value={user?.guardianPhone} field="guardianPhone" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Mail} label="Guardian Email" value={user?.guardianEmail} field="guardianEmail" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                </>
+              )}
 
-        {activeTab === 'academic' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={GraduationCap} label="Department" value={user?.department} field="department" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Calendar} label="Year" value={user?.year} field="year" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Building} label="Roll Number" value={user?.rollNumber} field="rollNumber" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={GraduationCap} label="Course" value={user?.course} field="course" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Calendar} label="Semester" value={user?.semester} field="semester" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Building} label="Batch" value={user?.batch} field="batch" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-          </div>
-        )}
+              {activeTab === 'academic' && (
+                <>
+                  <InfoField icon={GraduationCap} label="Primary Department" value={user?.department} field="department" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Calendar} label="Academic Year" value={user?.year} field="year" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Hash} label="Institutional Roll No." value={user?.rollNumber} field="rollNumber" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Briefcase} label="Current Degree" value={user?.course} field="course" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={IdCard} label="Current Semester" value={user?.semester} field="semester" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Building} label="Admission Batch" value={user?.batch} field="batch" isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                </>
+              )}
 
-        {activeTab === 'hostel' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField icon={Home} label="Room Number" value={user?.room} field="room" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Building} label="Block" value={user?.block} field="block" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Calendar} label="Check-in Date" value={user?.checkInDate} field="checkInDate" type="date" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-            <InfoField icon={Shield} label="Status" value={user?.status} field="status" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
-          </div>
-        )}
-      </motion.div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-              <Calendar size={24} />
-            </div>
-            <span className="text-3xl font-bold">0</span>
-          </div>
-          <h3 className="text-sm font-medium opacity-90">Active Complaints</h3>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-              <Calendar size={24} />
-            </div>
-            <span className="text-3xl font-bold">0</span>
-          </div>
-          <h3 className="text-sm font-medium opacity-90">Leave Requests</h3>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
-              <Clock size={24} />
-            </div>
-            <span className="text-3xl font-bold">
-              {user?.createdAt ? Math.floor((Date.now() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24)) : 0}
-            </span>
-          </div>
-          <h3 className="text-sm font-medium opacity-90">Days in Hostel</h3>
-        </motion.div>
+              {activeTab === 'hostel' && (
+                <>
+                  <InfoField icon={Home} label="Room Assignment" value={user?.room} field="room" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Building} label="Assigned block" value={user?.block} field="block" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <InfoField icon={Calendar} label="Allotment Date" value={user?.checkInDate} field="checkInDate" type="date" editable={false} isEditing={isEditing} editedData={editedData} onEdit={handleEdit} />
+                  <div className="p-5 rounded-2xl bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 shadow-sm flex flex-col justify-center">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 dark:text-slate-500 mb-2">Account Status</p>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span className="text-sm font-bold text-slate-800 dark:text-white uppercase">{user?.status || 'Active'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
