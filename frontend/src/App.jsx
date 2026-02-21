@@ -22,6 +22,7 @@ import StudentComplaints from "./pages/student/Complaints.jsx";
 import StudentLeaves from "./pages/student/Leaves.jsx";
 import StudentNotices from "./pages/student/Notices.jsx";
 import StudentPayments from "./pages/student/Payments.jsx";
+import StudentOnboarding from "./pages/student/Onboarding.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
@@ -99,6 +100,15 @@ function App() {
             <Route path="payments" element={<StudentPayments />} />
             <Route path="notices" element={<StudentNotices />} />
           </Route>
+
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <StudentOnboarding />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Legacy redirect */}
           <Route path="/dashboard" element={<Navigate to="/student/dashboard" replace />} />

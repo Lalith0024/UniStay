@@ -61,7 +61,7 @@ const Signup = () => {
         if (role === 'admin' || role === 'warden') {
           navigate('/admin/dashboard', { replace: true });
         } else {
-          navigate('/dashboard', { replace: true });
+          navigate('/onboarding', { replace: true });
         }
       } else {
         toast.success('Account created. Please log in.');
@@ -114,8 +114,8 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('student')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
-                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
-                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -125,8 +125,8 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('admin')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
-                        ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
-                        : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />

@@ -33,9 +33,20 @@ export default function StudentLayout() {
   ]);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    setUser(userData);
-  }, []);
+    const updateUserData = () => {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      setUser(userData);
+
+      // Enforcement: if student has no room, force onboarding
+      if (userData.role === 'student' && !userData.room && !location.pathname.includes('onboarding')) {
+        navigate('/onboarding');
+      }
+    };
+
+    updateUserData();
+    window.addEventListener('storage', updateUserData);
+    return () => window.removeEventListener('storage', updateUserData);
+  }, [navigate, location.pathname]);
 
   const links = [
     {
