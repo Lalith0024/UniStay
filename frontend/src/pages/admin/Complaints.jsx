@@ -98,16 +98,16 @@ const Complaints = () => {
       </div>
 
       <div>
-        <div className="relative inline-flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm w-full overflow-x-auto scrollbar-hide">
+        <div className="relative inline-flex bg-slate-50 dark:bg-neutral-900 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm w-full overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 min-w-max">
             {['All', 'Pending', 'In Progress', 'Resolved', 'Rejected'].map((status) => {
               const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
               const getStatusColor = () => {
-                if (status === 'Resolved') return 'from-green-500 via-green-600 to-green-700';
-                if (status === 'Rejected') return 'from-red-500 via-red-600 to-red-700';
-                if (status === 'Pending') return 'from-orange-500 via-orange-600 to-orange-700';
-                if (status === 'In Progress') return 'from-yellow-500 via-yellow-600 to-yellow-700';
-                return 'from-primary-500 via-primary-600 to-primary-700';
+                if (status === 'Resolved') return 'bg-green-500';
+                if (status === 'Rejected') return 'bg-red-500';
+                if (status === 'Pending') return 'bg-orange-500';
+                if (status === 'In Progress') return 'bg-yellow-500';
+                return 'bg-primary-500';
               };
               const getGlowColor = () => {
                 if (status === 'Resolved') return 'from-green-400 to-green-600';
@@ -130,13 +130,11 @@ const Complaints = () => {
                 >
                   {isActive && (
                     <>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${getStatusColor()} animate-gradient-shift`}></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                      <div className={`absolute -inset-1 bg-gradient-to-r ${getGlowColor()} opacity-30 blur-lg group-hover:opacity-50 transition-opacity`}></div>
+                      <div className={`absolute inset-0 ${getStatusColor()}`}></div>
                     </>
                   )}
                   {!isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-200/50 to-slate-300/50 dark:from-neutral-700/50 dark:to-neutral-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-slate-200 text-slate-900 dark:bg-neutral-700 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   )}
                   <span className="relative z-10">{status}</span>
                 </button>

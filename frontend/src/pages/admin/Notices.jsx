@@ -226,7 +226,7 @@ const Notices = () => {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 transition-all shadow-lg shadow-primary-500/25 font-semibold text-sm mt-2"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/25 font-semibold text-sm mt-2"
               >
                 <Send size={18} /> Post Notice
               </button>
@@ -237,15 +237,15 @@ const Notices = () => {
         {/* NOTICE LIST */}
         <div className="lg:col-span-2 space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center py-20 bg-gradient-to-br from-white to-slate-50 dark:from-neutral-800 dark:to-neutral-800 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg">
+            <div className="flex items-center justify-center py-20 bg-white dark:bg-neutral-800 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
                 <p className="text-slate-500 dark:text-slate-400 font-medium">Loading notices...</p>
               </div>
             </div>
           ) : notices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-white to-slate-50 dark:from-neutral-800 dark:to-neutral-800 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-teal-100 dark:from-primary-900/30 dark:to-teal-900/30 rounded-full flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-neutral-800 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg">
+              <div className="w-20 h-20 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mb-4">
                 <Bell size={32} className="text-primary-500" />
               </div>
               <p className="text-slate-500 dark:text-slate-400 font-medium">No notices posted yet</p>
@@ -256,16 +256,16 @@ const Notices = () => {
               <div
                 key={notice._id}
                 onClick={() => handleView(notice)}
-                className="bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-neutral-800 dark:via-neutral-800 dark:to-neutral-800 p-6 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg shadow-slate-200/80 dark:shadow-black/20 hover:shadow-2xl hover:shadow-primary-200/50 dark:hover:shadow-black/40 relative overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300"
+                className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border-2 border-slate-100 dark:border-neutral-700 shadow-lg shadow-slate-200/80 dark:shadow-black/20 hover:shadow-2xl hover:shadow-primary-200/50 dark:hover:shadow-black/40 relative overflow-hidden group cursor-pointer hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Decorative Gradient Background */}
-                <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${notice.priority === 'Urgent'
-                  ? 'from-red-200/40 via-red-100/20 to-transparent dark:from-red-500/10 dark:to-transparent'
-                  : 'from-primary-200/40 via-primary-100/20 to-transparent dark:from-primary-500/10 dark:to-transparent'
+                {/* Decorative Elements */}
+                <div className={`absolute top-0 right-0 w-40 h-40 ${notice.priority === 'Urgent'
+                  ? 'bg-red-500/5'
+                  : 'bg-primary-500/5'
                   } rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-110`} />
 
                 {notice.priority === "Urgent" && (
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full font-bold shadow-lg shadow-red-500/30">
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-red-500 text-white text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full font-bold shadow-lg shadow-red-500/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Urgent
                   </div>
@@ -284,8 +284,8 @@ const Notices = () => {
 
                 <div className="flex items-start gap-5 relative z-10">
                   <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-xl border-2 ${notice.priority === 'Urgent'
-                    ? 'bg-gradient-to-br from-red-500 to-rose-500 text-white border-red-200 dark:border-red-900/20 shadow-red-500/30'
-                    : 'bg-gradient-to-br from-primary-500 to-teal-500 text-white border-primary-200 dark:border-primary-900/20 shadow-primary-500/30'
+                    ? 'bg-red-500 text-white border-red-200 dark:border-red-900/20 shadow-red-500/30'
+                    : 'bg-primary-500 text-white border-primary-200 dark:border-primary-900/20 shadow-primary-500/30'
                     }`}>
                     <Bell size={24} className={notice.priority === 'Urgent' ? 'animate-bounce-slow' : ''} />
                   </div>

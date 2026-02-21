@@ -209,7 +209,7 @@ const Students = () => {
         </div>
         <button
           onClick={() => setCreateModal(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
+          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
         >
           <Plus size={20} />
           <span>Add Student</span>
@@ -229,7 +229,7 @@ const Students = () => {
           />
         </div>
 
-        <div className="relative flex bg-gradient-to-r from-slate-50 to-slate-100 dark:from-neutral-900 dark:to-neutral-800 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
+        <div className="relative flex bg-slate-50 dark:bg-neutral-900 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
           {['All', 'Active', 'Inactive'].map((status, index) => {
             const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
             return (
@@ -244,16 +244,13 @@ const Students = () => {
                 {/* Active Background with Gradient */}
                 {isActive && (
                   <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 animate-gradient-shift"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                    {/* Glow Effect */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary-400 to-primary-600 opacity-30 blur-lg group-hover:opacity-50 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-primary-500"></div>
                   </>
                 )}
 
                 {/* Hover Effect for Inactive */}
                 {!isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-200/50 to-slate-300/50 dark:from-neutral-700/50 dark:to-neutral-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-slate-200/50 dark:bg-neutral-700/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 )}
 
                 {/* Status Icon/Indicator */}

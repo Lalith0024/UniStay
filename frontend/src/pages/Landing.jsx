@@ -82,9 +82,9 @@ const Landing = () => {
       <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary-500/20 rounded-full blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
-          <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-teal-400/20 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
-          <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-purple-500/20 rounded-full blur-[120px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary-500/10 rounded-full blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
+          <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
+          <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-primary-600/10 rounded-full blur-[120px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen dark:opacity-20"></div>
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -133,7 +133,7 @@ const Landing = () => {
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-5">
               <Link to="/signup" className="w-full sm:w-auto">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button variant="gradient" size="lg" className="w-full sm:w-auto min-w-[180px] shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40 py-4 text-lg">
+                  <Button variant="primary" size="lg" className="w-full sm:w-auto min-w-[180px] shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40 py-4 text-lg">
                     Get Started <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </motion.div>
@@ -294,7 +294,7 @@ const Landing = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="max-w-6xl mx-auto bg-gradient-to-br from-primary-900 to-neutral-900 rounded-[3rem] p-16 md:p-24 text-center relative overflow-hidden border border-white/10 shadow-2xl"
+            className="max-w-6xl mx-auto bg-slate-900 rounded-[3rem] p-16 md:p-24 text-center relative overflow-hidden border border-white/10 shadow-2xl"
           >
             {/* Decorative Glows */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-[3rem]">

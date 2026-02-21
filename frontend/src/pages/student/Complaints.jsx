@@ -169,7 +169,7 @@ export default function StudentComplaints() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-500 to-teal-400 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
         >
           <Plus size={20} />
           <span>New Complaint</span>
@@ -435,7 +435,7 @@ export default function StudentComplaints() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3.5 rounded-xl bg-gradient-to-r from-primary-500 to-teal-400 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+                    className="flex-1 px-6 py-3.5 rounded-xl bg-primary-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
                   >
                     Submit Complaint
                   </button>

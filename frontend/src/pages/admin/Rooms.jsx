@@ -110,7 +110,7 @@ const Rooms = () => {
         </div>
         <button
           onClick={() => setCreateModal(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
+          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
         >
           <Plus size={20} />
           <span>Add Room</span>

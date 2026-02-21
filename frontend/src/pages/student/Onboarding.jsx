@@ -149,8 +149,9 @@ export default function StudentOnboarding() {
             const mergedUser = { ...storedUser, studentId: student._id, ...student };
             localStorage.setItem('user', JSON.stringify(mergedUser));
             setUser(mergedUser);
+
             let p_num = student.phone || '';
-            let c_code = prev.countryCode;
+            let c_code = '+91'; // Default or extracted
 
             if (p_num) {
               if (p_num.includes(' ')) {
@@ -220,7 +221,7 @@ export default function StudentOnboarding() {
       });
 
       if (res.data) {
-        const updatedUser = { ...user, ...res.data };
+        const updatedUser = { ...user, ...(res.data.data || res.data) };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
         toast.success("Profile saved successfully.");

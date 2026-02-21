@@ -188,11 +188,11 @@ export default function StudentDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-teal-400 dark:from-primary-900 dark:via-primary-800 dark:to-teal-900 p-8 md:p-10 shadow-xl shadow-primary-500/20"
+        className="relative overflow-hidden rounded-3xl bg-primary-600 dark:bg-primary-900 p-8 md:p-10 shadow-xl shadow-primary-500/20"
       >
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl mix-blend-overlay"></div>
-          <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-teal-300/20 rounded-full blur-3xl mix-blend-overlay"></div>
+          <div className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl mix-blend-overlay"></div>
+          <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-primary-300/10 rounded-full blur-3xl mix-blend-overlay"></div>
           <div className="absolute top-0 right-0 p-12 opacity-10">
             <Sparkles size={120} className="text-white" />
           </div>

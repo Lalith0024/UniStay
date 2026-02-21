@@ -89,7 +89,7 @@ export default function StudentLayout() {
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo Section */}
             <div className="flex items-center gap-2 py-4 border-b border-neutral-200 dark:border-neutral-800">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
                 U
               </div>
               {open && (
@@ -213,7 +213,7 @@ export default function StudentLayout() {
                 onClick={() => setShowProfile(!showProfile)}
                 className="flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 hover:border-primary-200 dark:hover:border-primary-800 transition-all shadow-sm hover:shadow-md group"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+                <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
                   {user?.name?.charAt(0) || 'S'}
                 </div>
                 <div className="hidden md:flex flex-col items-start">
@@ -236,7 +236,7 @@ export default function StudentLayout() {
                   >
                     <div className="p-6 border-b border-slate-100 dark:border-neutral-700 bg-gradient-to-br from-slate-50 to-white dark:from-neutral-800 dark:to-neutral-900">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-4 ring-white dark:ring-neutral-800">
+                        <div className="w-14 h-14 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-4 ring-white dark:ring-neutral-800">
                           {user?.name?.charAt(0) || 'S'}
                         </div>
                         <div className="flex-1 min-w-0">

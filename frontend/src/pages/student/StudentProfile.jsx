@@ -114,14 +114,14 @@ export default function StudentProfile() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-teal-400 dark:from-primary-900 dark:via-primary-800 dark:to-teal-900 p-8 md:p-10 shadow-xl shadow-primary-500/20"
+        className="relative overflow-hidden rounded-3xl bg-primary-600 dark:bg-primary-900 p-8 md:p-10 shadow-xl shadow-primary-500/20"
       >
         {/* Background Patterns */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 p-12 opacity-10">
             <Sparkles size={120} className="text-white" />
           </div>
-          <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl mix-blend-overlay"></div>
+          <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl mix-blend-overlay"></div>
         </div>
 
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -203,8 +203,8 @@ export default function StudentProfile() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group ${activeTab === tab.id
-                  ? 'bg-white dark:bg-neutral-800 shadow-xl shadow-slate-200/50 dark:shadow-black/20 text-primary-600 dark:text-primary-400'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
+                ? 'bg-white dark:bg-neutral-800 shadow-xl shadow-slate-200/50 dark:shadow-black/20 text-primary-600 dark:text-primary-400'
+                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                 }`}
             >
               <div className={`p-3 rounded-xl ${activeTab === tab.id ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-slate-100 dark:bg-neutral-800'}`}>

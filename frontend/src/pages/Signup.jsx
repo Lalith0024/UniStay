@@ -96,7 +96,7 @@ const Signup = () => {
           className="w-full max-w-lg"
         >
           <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-primary-500" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary-500" />
 
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
@@ -114,7 +114,7 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('student')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
-                      ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
                       : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
                       }`}
                   >
@@ -125,7 +125,7 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('admin')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
-                      ? 'bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/30'
+                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
                       : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
                       }`}
                   >
@@ -182,7 +182,7 @@ const Signup = () => {
 
               <Button
                 type="submit"
-                variant="gradient"
+                variant="primary"
                 isLoading={loading}
                 className="w-full shadow-xl shadow-primary-500/20 mt-6"
               >
