@@ -20,10 +20,10 @@ router.post('/:id/allocate-room', ensureAuthenticated, async (req, res) => {
     }
 
     // Find the first available room with capacity
-    // We check where occupied < capacity
+    // We check where occupied < capacity and sort by Block and Number to maintain order
     const room = await Room.findOne({
       $expr: { $lt: ["$occupied", "$capacity"] }
-    });
+    }).sort({ block: 1, number: 1 });
 
     if (!room) {
       return res.status(404).json({ message: 'No available rooms found. Please contact administration.' });

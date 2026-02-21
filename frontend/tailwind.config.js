@@ -8,23 +8,22 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
-        display: ['Space Grotesk', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'sans-serif'],
       },
       colors: {
         primary: {
-          DEFAULT: "#00f2ea", // Cyber Teal
-          50: "#f0fdfc",
-          100: "#ccfbf9",
-          200: "#99f6f2",
-          300: "#5cece6",
-          400: "#26dcd5",
-          500: "#00f2ea",
-          600: "#00c4bd",
-          700: "#009c98",
-          800: "#007977",
-          900: "#006362",
-          950: "#003b3c",
+          50: "#eef2ff",
+          100: "#e0e7ff",
+          200: "#c7d2fe",
+          300: "#a5b4fc",
+          400: "#818cf8",
+          500: "#6366f1", // Premium Indigo
+          600: "#4f46e5",
+          700: "#4338ca",
+          800: "#3730a3",
+          900: "#312e81",
+          950: "#1e1b4b",
         },
         brandDark: {
           DEFAULT: "#09090b", // Zinc 950

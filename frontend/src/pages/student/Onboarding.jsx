@@ -106,12 +106,25 @@ export default function StudentOnboarding() {
   // Form State
   const [formData, setFormData] = useState({
     name: '',
+    countryCode: '+91',
     phone: '',
     department: '',
     year: '1st',
     bio: '',
     image: null
   });
+
+  // Phone Validation Rules
+  const phoneValidations = {
+    '+1': { length: 10, placeholder: '2015550123' },  // US/Canada
+    '+44': { length: 10, placeholder: '7123456789' }, // UK
+    '+61': { length: 9, placeholder: '412345678' },   // Australia
+    '+81': { length: 10, placeholder: '9012345678' }, // Japan
+    '+91': { length: 10, placeholder: '9876543210' }, // India
+  };
+
+  const getRequiredLength = () => phoneValidations[formData.countryCode]?.length || 10;
+  const isPhoneValid = formData.phone.length === getRequiredLength();
 
   // UI State
   const [isVerified, setIsVerified] = useState(false);
@@ -136,10 +149,25 @@ export default function StudentOnboarding() {
             const mergedUser = { ...storedUser, studentId: student._id, ...student };
             localStorage.setItem('user', JSON.stringify(mergedUser));
             setUser(mergedUser);
+            let p_num = student.phone || '';
+            let c_code = prev.countryCode;
+
+            if (p_num) {
+              if (p_num.includes(' ')) {
+                const parts = p_num.split(' ');
+                c_code = parts[0];
+                p_num = parts[1];
+              }
+              const cleaned = p_num.replace(/\D/g, '');
+              const reqLen = phoneValidations[c_code]?.length || 10;
+              p_num = cleaned.length > reqLen ? cleaned.slice(-reqLen) : cleaned;
+            }
+
             setFormData(prev => ({
               ...prev,
               name: student.name || '',
-              phone: student.phone || '',
+              countryCode: c_code,
+              phone: p_num,
               department: student.department || '',
               year: student.year || '1st',
               bio: student.bio || '',
@@ -183,7 +211,7 @@ export default function StudentOnboarding() {
     try {
       const studentId = user.studentId || user._id;
       const res = await axios.patch(`${API_BASE_URL}/api/students/${studentId}`, {
-        phone: formData.phone,
+        phone: `${formData.countryCode} ${formData.phone}`,
         department: formData.department,
         year: formData.year,
         bio: formData.bio,
@@ -252,190 +280,213 @@ export default function StudentOnboarding() {
   ];
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${theme === 'dark' ? 'bg-[#050505] text-white' : 'bg-slate-50 text-slate-900'} selection:bg-primary-500/30 font-sans relative overflow-hidden`}>
+    <div className={`min-h-screen transition-colors duration-700 ${theme === 'dark' ? 'bg-[#030305] text-slate-100' : 'bg-[#fafafa] text-slate-900'} font-sans relative flex`}>
       {/* Theme Toggle Button */}
       <div className="fixed top-8 left-8 z-50">
         <button
           onClick={toggleTheme}
-          className={`p-3 rounded-2xl border backdrop-blur-xl transition-all group shadow-2xl ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200 shadow-lg'
+          className={`p-3 rounded-full border backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'
             }`}
         >
-          {theme === 'dark' ? <Sun size={20} className="text-primary-400" /> : <Moon size={20} className="text-primary-600" />}
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary-900/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[120px]" />
+      {/* Left Column (Full Bleed Image) - Hidden on Mobile */}
+      <div className={`hidden lg:flex w-1/2 relative bg-cover bg-center border-r ${theme === 'dark' ? 'border-white/5' : 'border-slate-200'}`} style={{ backgroundImage: "url('/onboarding/student_lounge.jpg')" }}>
+        {/* Subtle overlay for better contrast if needed later */}
+        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-black/40' : 'bg-black/10'}`}></div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-12 relative z-10 min-h-screen flex flex-col items-center justify-center">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border backdrop-blur-md mb-6 ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white/60' : 'bg-white border-slate-200 text-slate-500 shadow-sm'
-            }`}>
-            <Zap size={14} className="text-primary-400" />
-            <span className="text-[10px] uppercase font-black tracking-[0.2em]">Step {step} of 5</span>
-          </div>
-          <h1 className="text-5xl font-black tracking-tight mb-4 bg-gradient-to-b from-slate-900 to-slate-500 dark:from-white dark:to-white/50 bg-clip-text text-transparent">
-            Welcome to UniStay
-          </h1>
-          <p className={`${theme === 'dark' ? 'text-white/40' : 'text-slate-600'} max-w-md mx-auto leading-relaxed font-medium`}>
-            Let's get your official resident profile set up to grant you access to the hostal facilities.
-          </p>
-        </motion.div>
+      {/* Right Column (Interactive Form) */}
+      <div className="w-full lg:w-1/2 min-h-screen py-10 px-6 sm:px-12 md:px-20 lg:px-24 xl:px-32 flex flex-col justify-center relative bg-transparent overflow-y-auto z-10">
 
-        <div className="w-full max-w-2xl relative">
+        {/* Removed mobile ambient background effect per user request */}
+
+        {/* Header Section */}
+        <div className="mb-10 w-full mt-10">
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border mb-5 shadow-sm ${theme === 'dark' ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white text-slate-500 border-slate-200'}`}>
+            <div className="flex gap-1.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className={`h-1.5 rounded-sm transition-all duration-500 ${step >= i ? 'w-4 bg-primary-500' : 'w-1.5 bg-slate-300 dark:bg-white/10'}`} />
+              ))}
+            </div>
+            <span className="text-[10px] ml-2 font-bold uppercase tracking-widest">Step {step}/5</span>
+          </div>
+          <h1 className="font-sans font-black text-4xl sm:text-5xl tracking-tighter mb-3">
+            Setup <span className="text-primary-600 dark:text-primary-400">Profile</span>
+          </h1>
+          <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} text-sm sm:text-base font-medium leading-relaxed`}>
+            {step === 1 && "Let's start with your contact and personal information."}
+            {step === 2 && "Position your face in the frame."}
+            {step === 3 && "Tell us about your academic pursuits."}
+            {step === 4 && "Initiating the room allocation sequence."}
+            {step === 5 && "Clear the final bot check to enter your dashboard."}
+          </p>
+        </div>
+
+        {/* Form Container */}
+        <div className="w-full relative">
           <AnimatePresence mode="wait">
             {/* Step 1: Identity */}
             {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                className={`glass-panel p-8 md:p-12 rounded-[2.5rem] border shadow-2xl relative overflow-hidden group ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'
-                  }`}
+              <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                className="w-full"
               >
-                <div className="absolute top-0 right-0 p-8 pointer-events-none opacity-20">
-                  <User size={120} className="text-primary-500" />
-                </div>
-                <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/20">
-                    <User size={20} />
-                  </div>
-                  Personal Details
-                </h2>
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white/40' : 'text-slate-500'} ml-1`}>Phone Number</label>
-                    <input type="tel" placeholder="+91 9876543210" value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className={`w-full px-6 py-4 rounded-2xl border transition-all outline-none ${theme === 'dark'
-                        ? 'bg-white/5 border-white/10 text-white focus:border-primary-500'
-                        : 'bg-white border-slate-200 text-slate-900 focus:border-primary-500 shadow-sm'
-                        }`}
-                    />
+                  <div>
+                    <label className={`block text-xs font-bold mb-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Phone Number</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={formData.countryCode}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          setFormData({ ...formData, countryCode: newCode, phone: '' }); // Reset phone when country changes
+                        }}
+                        className={`px-4 py-4 rounded-xl border-2 transition-all duration-200 outline-none focus:border-primary-500 focus:bg-transparent min-w-[100px] font-medium ${theme === 'dark'
+                          ? 'bg-[#0f0f13] border-white/5 text-white'
+                          : 'bg-slate-50 border-slate-200 text-slate-900'
+                          }`}
+                      >
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+61">🇦🇺 +61</option>
+                        <option value="+81">🇯🇵 +81</option>
+                        <option value="+91">🇮🇳 +91</option>
+                      </select>
+                      <input type="tel" placeholder={phoneValidations[formData.countryCode]?.placeholder || "9876543210"} value={formData.phone}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, ''); // Ensure only numeric characters
+                          // Optional: prevent typing more than required length
+                          const reqLen = getRequiredLength();
+                          if (val.length <= reqLen) {
+                            setFormData({ ...formData, phone: val });
+                          }
+                        }}
+                        className={`w-full px-5 py-4 rounded-xl border-2 transition-all duration-200 outline-none focus:bg-transparent ${formData.phone.length > 0 && !isPhoneValid && theme === 'dark' ? 'border-red-500/50 focus:border-red-500' :
+                          formData.phone.length > 0 && !isPhoneValid ? 'border-red-400 focus:border-red-500' :
+                            theme === 'dark' ? 'bg-[#0f0f13] border-white/5 text-white placeholder-slate-600 focus:border-primary-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-primary-500'
+                          }`}
+                      />
+                    </div>
+                    {formData.phone.length > 0 && !isPhoneValid && (
+                      <p className="text-red-500 text-xs mt-2 font-medium flex items-center gap-1">
+                        * Required length: {getRequiredLength()} digits (current: {formData.phone.length})
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <label className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white/40' : 'text-slate-500'} ml-1`}>Short Bio</label>
-                    <textarea rows={3} placeholder="Tell your roommates about yourself..." value={formData.bio}
+                  <div>
+                    <label className={`block text-xs font-bold mb-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Short Bio</label>
+                    <textarea rows={4} placeholder="Tell your roommates about yourself..." value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      className={`w-full px-6 py-4 rounded-2xl border transition-all outline-none resize-none ${theme === 'dark'
-                        ? 'bg-white/5 border-white/10 text-white focus:border-primary-500'
-                        : 'bg-white border-slate-200 text-slate-900 focus:border-primary-500 shadow-sm'
+                      className={`w-full px-5 py-4 rounded-xl border-2 transition-all duration-200 outline-none resize-none focus:border-primary-500 focus:bg-transparent ${theme === 'dark'
+                        ? 'bg-[#0f0f13] border-white/5 text-white placeholder-slate-600'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
                         }`}
                     />
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {['Tech enthusiast', 'Music lover', 'Skater', 'Bookworm'].map(tag => (
                         <button key={tag} onClick={() => setFormData(prev => ({ ...prev, bio: prev.bio ? `${prev.bio}, ${tag}` : tag }))}
-                          className={`text-[10px] px-3 py-1 rounded-full border transition-all font-bold ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white/40 hover:text-white' : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-primary-600'
+                          className={`text-xs px-3.5 py-1.5 rounded-lg border transition-all font-medium ${theme === 'dark' ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20' : 'bg-white border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50/50'
                             }`}
                         >+ {tag}</button>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="mt-12 flex justify-end">
-                  <button disabled={!formData.phone} onClick={() => setStep(2)}
-                    className="flex items-center gap-4 px-10 py-5 bg-primary-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-30 shadow-xl shadow-primary-500/20"
-                  >Next <ChevronRight size={18} /></button>
+                <div className="mt-10 flex justify-end">
+                  <button disabled={!isPhoneValid} onClick={() => setStep(2)}
+                    className="flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-sm hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                  >Continue <ChevronRight size={18} /></button>
                 </div>
               </motion.div>
             )}
 
             {/* Step 2: Face Scan */}
             {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                className={`glass-panel p-8 md:p-12 rounded-[2.5rem] border shadow-2xl ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}
+              <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                className="w-full"
               >
-                <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <Camera size={20} />
-                  </div>
-                  Identity Verification
-                </h2>
                 <div className="flex flex-col items-center">
-                  <div className="relative w-64 h-64 rounded-[3.5rem] overflow-hidden border-2 border-dashed border-primary-500/40 p-2">
-                    <div className="absolute inset-0 bg-primary-500/10 animate-scan pointer-events-none z-20" />
+                  <div className={`relative w-full max-w-sm aspect-square rounded-[3rem] overflow-hidden border-2 border-dashed p-1.5 transition-colors ${theme === 'dark' ? 'border-primary-500/30 bg-[#0f0f13]' : 'border-primary-400/50 bg-slate-50'}`}>
+                    <div className="absolute inset-0 bg-primary-500/5 animate-scan pointer-events-none z-20 rounded-[3rem]" />
                     {capturedImage ? (
-                      <img src={capturedImage} alt="Face" className="w-full h-full object-cover rounded-[3rem]" />
+                      <img src={capturedImage} alt="Face" className="w-full h-full object-cover rounded-[2.5rem]" />
                     ) : cameraActive ? (
-                      <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full h-full object-cover rounded-[3rem]" />
+                      <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full h-full object-cover rounded-[2.5rem]" />
                     ) : (
-                      <div className={`w-full h-full flex items-center justify-center rounded-[3rem] ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50'}`}>
-                        <Camera size={48} className="text-primary-500/20" />
+                      <div className={`w-full h-full flex flex-col items-center justify-center rounded-[2.5rem] ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`}>
+                        <Camera size={40} className={`mb-3 ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'}`} />
+                        <span className={`text-xs font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>Camera Offline</span>
                       </div>
                     )}
                   </div>
-                  <div className="mt-8 flex gap-4">
+                  <div className="mt-8 flex gap-4 w-full max-w-sm justify-center">
                     {!cameraActive && !capturedImage && (
-                      <button onClick={() => setCameraActive(true)} className="px-8 py-4 bg-primary-500 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary-500/20">Activate Camera</button>
+                      <button onClick={() => setCameraActive(true)} className={`w-full py-4 rounded-xl font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all ${theme === 'dark' ? 'bg-white border text-black' : 'bg-white border-2 border-slate-200 text-slate-800'}`}>Activate Camera</button>
                     )}
                     {cameraActive && (
-                      <button onClick={capture} className="w-16 h-16 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-xl ring-4 ring-primary-500/10"><Camera size={24} /></button>
+                      <button onClick={capture} className="w-20 h-20 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-xl ring-8 ring-primary-500/20 active:scale-90 transition-all"><Camera size={32} /></button>
                     )}
                     {capturedImage && (
-                      <button onClick={() => { setCapturedImage(null); setCameraActive(true); }} className={`px-6 py-3 rounded-xl font-black text-xs uppercase border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900 shadow-sm'
-                        }`}><RefreshCcw size={16} className="inline mr-2" /> Retake</button>
+                      <button onClick={() => { setCapturedImage(null); setCameraActive(true); }} className={`px-6 py-3 rounded-xl font-bold text-xs uppercase border-2 transition-all flex items-center gap-2 ${theme === 'dark' ? 'bg-transparent border-white/20 text-slate-300 hover:text-white hover:border-white/50' : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50'
+                        }`}><RefreshCcw size={16} /> Retake</button>
                     )}
                   </div>
                 </div>
-                <div className="mt-12 flex justify-between">
-                  <button onClick={() => setStep(1)} className="text-slate-500 font-black text-xs uppercase tracking-widest flex items-center gap-2"><ArrowLeft size={14} /> Back</button>
-                  <button disabled={!capturedImage} onClick={() => setStep(3)} className="px-10 py-5 bg-primary-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary-500/20">Confirm <ChevronRight size={18} className="inline ml-2" /></button>
+                <div className="mt-12 flex justify-between items-center w-full">
+                  <button onClick={() => setStep(1)} className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${theme === 'dark' ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}><ArrowLeft size={16} /> Back</button>
+                  <button disabled={!capturedImage} onClick={() => setStep(3)} className="flex items-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-sm hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">Next <ChevronRight size={18} /></button>
                 </div>
               </motion.div>
             )}
 
             {/* Step 3: Academic */}
             {step === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                className={`glass-panel p-8 md:p-12 rounded-[2.5rem] border shadow-2xl ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}
+              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                className="w-full"
               >
-                <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-500/20">
-                    <GraduationCap size={20} />
-                  </div>
-                  Academic Setup
-                </h2>
                 <div className="space-y-8">
-                  <div className="space-y-4">
-                    <label className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white/40' : 'text-slate-500'} ml-1`}>Department</label>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-xs font-bold mb-3 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Department</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {departments.map(dept => {
                         const Icon = dept.icon;
                         const isSelected = formData.department === dept.id;
                         return (
                           <button key={dept.id} onClick={() => setFormData({ ...formData, department: dept.id })}
-                            className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all duration-300 group ${isSelected
-                              ? 'bg-primary-500 border-primary-500 text-white shadow-xl shadow-primary-500/25'
-                              : theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-primary-500 text-slate-900 shadow-sm'
+                            className={`flex items-center justify-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 ${isSelected
+                              ? 'bg-primary-500/10 border-primary-500'
+                              : theme === 'dark' ? 'bg-[#0f0f13] border-white/5 hover:border-white/20' : 'bg-slate-50 border-slate-200 hover:border-primary-300'
                               }`}
                           >
-                            <div className={`p-3 rounded-2xl transition-all ${isSelected ? 'bg-white/20' : theme === 'dark' ? 'bg-white/5' : 'bg-slate-50'}`}>
-                              <Icon size={24} className={isSelected ? 'text-white' : 'text-primary-500'} />
+                            <div className={`p-2 rounded-lg transition-all ${isSelected ? 'bg-primary-500' : theme === 'dark' ? 'bg-white/5' : 'bg-white'}`}>
+                              <Icon size={20} className={isSelected ? 'text-white' : dept.color} />
                             </div>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-slate-500'}`}>{dept.id}</span>
+                            <span className={`text-sm font-bold ${isSelected ? (theme === 'dark' ? 'text-primary-400' : 'text-primary-600') : theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{dept.id}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <label className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white/40' : 'text-slate-500'} ml-1`}>Current Year</label>
-                    <div className="flex gap-4">
+                  <div>
+                    <label className={`block text-xs font-bold mb-3 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Current Year</label>
+                    <div className="grid grid-cols-4 gap-3">
                       {['1st', '2nd', '3rd', '4th'].map(yr => (
                         <button key={yr} onClick={() => setFormData({ ...formData, year: yr })}
-                          className={`flex-1 py-4 rounded-2xl border font-black text-xs uppercase tracking-widest transition-all ${formData.year === yr
-                            ? 'bg-primary-500 text-white border-primary-500 shadow-xl shadow-primary-500/25'
-                            : theme === 'dark' ? 'bg-white/5 border-white/5 text-white/40' : 'bg-white border-slate-200 text-slate-500'
+                          className={`py-3.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${formData.year === yr
+                            ? 'bg-primary-500/10 border-primary-500 text-primary-600 dark:text-primary-400'
+                            : theme === 'dark' ? 'bg-[#0f0f13] border-white/5 text-slate-400 hover:border-white/20' : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-primary-300'
                             }`}
                         >{yr}</button>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="mt-12 flex justify-between items-center">
-                  <button onClick={() => setStep(2)} className="text-slate-500 font-black text-xs uppercase tracking-widest flex items-center gap-2"><ArrowLeft size={14} /> Back</button>
+                <div className="mt-12 flex justify-between items-center w-full">
+                  <button onClick={() => setStep(2)} className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${theme === 'dark' ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}><ArrowLeft size={16} /> Back</button>
                   <button disabled={!formData.department || submitting} onClick={handleUpdateProfile}
-                    className="px-10 py-5 bg-primary-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary-500/20"
+                    className="flex items-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-sm hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >{submitting ? <Loader size={18} className="animate-spin" /> : 'Finalize Profile'}</button>
                 </div>
               </motion.div>
@@ -443,46 +494,49 @@ export default function StudentOnboarding() {
 
             {/* Step 4: Room Allocation */}
             {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className={`glass-panel p-8 md:p-12 rounded-[2.5rem] border shadow-2xl relative overflow-hidden transition-all text-center ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'
-                  }`}
+              <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                className="w-full flex justify-center py-6"
               >
                 {!allocationResult ? (
-                  <div className="py-12">
-                    <motion.div animate={{ rotate: [0, 5, -5, 0], y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }}
-                      className="w-32 h-32 bg-primary-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-primary-500/30 mb-8 shadow-xl"
-                    >
-                      <Building size={64} className="text-primary-500" />
-                    </motion.div>
-                    <h2 className={`text-4xl font-black mb-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Room Allocation</h2>
-                    <p className={`max-w-sm mx-auto leading-relaxed mb-10 font-medium ${theme === 'dark' ? 'text-white/40' : 'text-slate-600'}`}>
-                      Our automated system is processing your academic and personal profile to find the best available quarters.
-                    </p>
-                    <button onClick={handleAllocateRoom} disabled={allocating}
-                      className="px-16 py-6 bg-primary-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary-500/30 hover:scale-105 active:scale-95 transition-all w-full"
-                    >
-                      {allocating ? <span className="flex items-center justify-center gap-3"><Loader size={18} className="animate-spin" /> Allocating...</span> : "Find My Room"}
-                    </button>
+                  <div className="w-full max-w-sm">
+                    <div className={`p-8 rounded-[2rem] border-2 text-center shadow-lg ${theme === 'dark' ? 'bg-[#0f0f13] border-white/5' : 'bg-white border-slate-200'}`}>
+                      <div className="flex items-center justify-center p-3 rounded-lg bg-primary-500 text-white mb-6 w-16 h-16 mx-auto">
+                        <Building size={32} />
+                      </div>
+                      <h3 className="font-sans text-2xl font-black mb-3 tracking-tight">Find Suite</h3>
+                      <p className={`text-sm mb-8 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                        We are ready to allocate your room based on the details you provided.
+                      </p>
+                      <button onClick={handleAllocateRoom} disabled={allocating}
+                        className="w-full py-4 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-primary-600/30"
+                      >
+                        {allocating ? <><Loader size={20} className="animate-spin" /> Allocating...</> : "Initialize Allocation"}
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="py-12 relative z-10">
+                  <div className="w-full max-w-sm text-center">
                     <SuccessParticles />
-                    <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="w-40 h-40 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-emerald-500/40 border-8 border-white dark:border-neutral-900">
-                      <CheckCircle size={80} className="text-white" />
+                    <motion.div initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                      className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/30 border-4 border-white dark:border-[#0f0f13]"
+                    >
+                      <CheckCircle size={48} className="text-white" />
                     </motion.div>
-                    <h2 className={`text-5xl font-black mb-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Congratulations!</h2>
-                    <p className={`text-xl mb-12 font-bold ${theme === 'dark' ? 'text-white/40' : 'text-slate-600'}`}>You've been assigned to:</p>
-                    <div className="p-12 rounded-[3.5rem] bg-gradient-to-br from-primary-600 to-indigo-700 text-white shadow-2xl shadow-primary-500/40 mb-12 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-150 transition-transform duration-1000">
-                        <Home size={160} />
+
+                    <div className={`p-8 rounded-[2rem] border text-center shadow-xl mb-8 relative overflow-hidden group ${theme === 'dark' ? 'bg-[#0f0f13] border-white/10' : 'bg-white border-slate-200'}`}>
+                      <div className="absolute -top-10 -right-10 opacity-[0.03] dark:opacity-10 group-hover:scale-110 transition-all duration-700">
+                        <Home size={200} className={theme === 'dark' ? 'text-white' : 'text-slate-900'} />
                       </div>
                       <div className="relative z-10">
-                        <div className="text-sm font-black uppercase tracking-[0.5em] mb-4 text-primary-200">Resident Suite</div>
-                        <div className="text-7xl font-black mb-4 tracking-tighter">Room {allocationResult.number}</div>
-                        <div className="text-2xl font-black opacity-80">Block {allocationResult.block}</div>
+                        <div className={`text-xs font-bold uppercase tracking-[0.2em] mb-2 ${theme === 'dark' ? 'text-primary-400' : 'text-primary-600'}`}>Success</div>
+                        <div className="font-sans text-5xl font-black tracking-tighter mb-2 text-slate-900 dark:text-white">Rm {allocationResult.number}</div>
+                        <div className={`text-sm font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Block {allocationResult.block}</div>
                       </div>
                     </div>
-                    <button onClick={() => setStep(5)} className="px-12 py-6 bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 transition-all border border-slate-100 dark:border-neutral-700 w-full">Final Confirmation <ChevronRight size={20} className="inline ml-2" /></button>
+
+                    <button onClick={() => setStep(5)} className={`w-full py-4 rounded-xl font-bold text-sm border-2 transition-all flex items-center justify-center gap-2 ${theme === 'dark' ? 'border-primary-500/50 bg-primary-500/10 text-primary-400 hover:bg-primary-500/20' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-900'}`}>
+                      Continue to Auth <ChevronRight size={18} />
+                    </button>
                   </div>
                 )}
               </motion.div>
@@ -490,33 +544,30 @@ export default function StudentOnboarding() {
 
             {/* Step 5: Final Protocol */}
             {step === 5 && (
-              <motion.div key="step5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                className={`glass-panel p-8 md:p-12 rounded-[2.5rem] border shadow-2xl text-center ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}
+              <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                className="w-full flex justify-center py-6"
               >
-                <div className="w-20 h-20 bg-primary-500 text-white rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-xl shadow-primary-500/20">
-                  <Shield size={40} />
+                <div className="w-full max-w-sm">
+                  <div className={`p-8 sm:p-10 rounded-[2rem] border-2 text-center shadow-lg ${theme === 'dark' ? 'bg-[#0f0f13] border-white/5' : 'bg-white border-slate-200'}`}>
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                      <Shield size={40} />
+                    </div>
+                    <h3 className="font-sans text-2xl font-black mb-3 tracking-tight">Bot Check</h3>
+                    <p className={`text-sm mb-8 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Just to make sure you are human, please solve the captcha below.
+                    </p>
+                    <div className="flex justify-center mb-8">
+                      <RecaptchaMock onVerify={setIsVerified} />
+                    </div>
+                    <button disabled={!isVerified} onClick={finishOnboarding}
+                      className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-sm transition-all duration-300 shadow-xl ${isVerified ? 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-primary-500/30 hover:scale-[1.02]' : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 opacity-60 cursor-not-allowed'
+                        }`}
+                    >Go to Dashboard <ArrowRight size={20} /></button>
+                  </div>
                 </div>
-                <h2 className={`text-4xl font-black mb-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>One Last Step</h2>
-                <p className={`max-w-md mx-auto leading-relaxed mb-12 font-medium ${theme === 'dark' ? 'text-white/40' : 'text-slate-600'}`}>
-                  Verification complete. Solve the final security layer to activate your resident dashboard and start your journey.
-                </p>
-                <div className="flex justify-center mb-12">
-                  <RecaptchaMock onVerify={setIsVerified} />
-                </div>
-                <button disabled={!isVerified} onClick={finishOnboarding}
-                  className={`w-full py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-2xl ${isVerified ? 'bg-primary-500 text-white shadow-primary-500/40 hover:scale-105' : 'bg-slate-200 text-slate-400 grayscale opacity-50'
-                    }`}
-                >Enter Dashboard <ArrowRight size={20} className="inline ml-2" /></button>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mt-16 flex gap-3">
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className={`h-2 rounded-full transition-all duration-500 ${step >= i ? 'w-12 bg-primary-500 shadow-lg shadow-primary-500/40' : 'w-4 bg-slate-200 dark:bg-white/5'}`} />
-          ))}
         </div>
       </div>
 
