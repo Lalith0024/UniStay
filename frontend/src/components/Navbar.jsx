@@ -37,13 +37,20 @@ const Navbar = () => {
         }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform duration-300">
-            U
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl shadow-primary-500/30 group-hover:rotate-12 transition-all duration-500 overflow-hidden">
+              <span className="relative z-10">U</span>
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-white/20 blur-xl"></div>
+            </div>
+            <div className="absolute -inset-1 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
           </div>
-          <span className="text-2xl font-bold font-display tracking-tight text-slate-900 dark:text-white">
-            UNISTAY
-          </span>
+          <div className="flex flex-col -gap-1">
+            <span className="text-2xl font-black font-display tracking-tight text-slate-900 dark:text-white group-hover:text-primary-500 transition-colors">
+              UNISTAY
+            </span>
+            <span className="text-[10px] font-bold text-primary-500 uppercase tracking-[0.2em]">Smart Living</span>
+          </div>
         </Link>
 
         {/* Desktop Menu */}

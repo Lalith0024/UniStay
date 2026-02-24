@@ -13,12 +13,12 @@ export default {
       },
       colors: {
         primary: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9", // Modern Azure Blue
+          50: "#e0f2fe",
+          100: "#bae6fd",
+          200: "#7dd3fc",
+          300: "#38bdf8",
+          400: "#0ea5e9",
+          500: "#00BFFF", // Deep Cyan / Blue
           600: "#0284c7",
           700: "#0369a1",
           800: "#075985",
@@ -26,7 +26,7 @@ export default {
           950: "#082f49",
         },
         brandDark: {
-          DEFAULT: "#09090b", // Zinc 950
+          DEFAULT: "#0a0a0f", // Very Dark Navy
           50: "#fafafa",
           100: "#f4f4f5",
           200: "#e4e4e7",
@@ -37,12 +37,12 @@ export default {
           700: "#3f3f46",
           800: "#27272a",
           900: "#18181b",
-          950: "#09090b",
-          1000: "#000000", // Pure Black
+          950: "#0a0a0f",
+          1000: "#000000",
         },
         glass: {
-          light: "rgba(255, 255, 255, 0.7)",
-          dark: "rgba(15, 23, 42, 0.6)",
+          light: "rgba(255, 255, 255, 0.05)",
+          dark: "rgba(0, 0, 0, 0.4)",
         }
       },
       backgroundImage: {
