@@ -1,71 +1,73 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight, Shield, Zap, Smartphone, Star, Users, CheckCircle,
-  Play, MousePointer2, CreditCard, Layout, BarChart, Bell, ArrowUpRight
+  ArrowRight, Shield, Zap, Smartphone, Star, Users, CreditCard,
+  BarChart2, Layout, Globe, Activity, CheckCircle, Play,
+  Bell, ChevronRight, Layers,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Button from '../components/Button';
 
-// --- Typewriter Component ---
-const TypewriterHeadline = () => {
-  const words = ["Smart Living.", "Seamless Management.", "Modern Campus."];
-  const [index, setIndex] = useState(0);
+/* ─── Easing ───────────────────────────────────────────── */
+const EASE = [0.16, 1, 0.3, 1];
 
+/* ─── Typewriter ────────────────────────────────────────── */
+const WORDS = ['Smart Living.', 'Seamless Management.', 'Modern Campus.'];
+
+const Typewriter = () => {
+  const [i, setI] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % words.length);
-    }, 3000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setI(v => (v + 1) % WORDS.length), 3000);
+    return () => clearInterval(t);
   }, []);
-
   return (
-    <div className="h-[1.2em] relative overflow-hidden inline-flex flex-col">
+    <span className="inline-block" style={{ position: 'relative', overflow: 'hidden', display: 'block', lineHeight: 1 }}>
       <AnimatePresence mode="wait">
         <motion.span
-          key={index}
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
-          transition={{ duration: 0.5, ease: "circOut" }}
-          className="bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent"
+          key={i}
+          initial={{ y: '110%', opacity: 0 }}
+          animate={{ y: 0,      opacity: 1 }}
+          exit={{    y: '-110%', opacity: 0 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="gradient-text"
+          style={{ display: 'block' }}
         >
-          {words[index]}
+          {WORDS[i]}
         </motion.span>
       </AnimatePresence>
-    </div>
+    </span>
   );
 };
 
-// --- Animated Stats Counter ---
-const StatCounter = ({ value, suffix, label, icon: Icon }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-
+/* ─── Animated Counter ──────────────────────────────────── */
+const useCounter = (target, isInView, delay = 0) => {
+  const [value, setValue] = useState(0);
   useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const end = parseInt(value);
-      if (isNaN(end)) return;
-
-      const duration = 2000;
-      const increment = end / (duration / 16);
-
+    if (!isInView) return;
+    const timeout = setTimeout(() => {
+      const isFloat = !Number.isInteger(target);
+      const steps = 60;
+      const interval = 1800 / steps;
+      let step = 0;
       const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-      return () => clearInterval(timer);
-    }
-  }, [isInView, value]);
+        step++;
+        const progress = step / steps;
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(parseFloat((target * eased).toFixed(isFloat ? 1 : 0)));
+        if (step >= steps) { setValue(target); clearInterval(timer); }
+      }, interval);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [isInView, target, delay]);
+  return value;
+};
+
+const StatCard = ({ icon: Icon, value, suffix, label, delay, color }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const count = useCounter(parseFloat(value), inView, delay);
+  const isFloat = !Number.isInteger(parseFloat(value));
 
   return (
     <motion.div
@@ -73,528 +75,708 @@ const StatCounter = ({ value, suffix, label, icon: Icon }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="p-8 rounded-[2rem] bg-white/5 backdrop-blur-xl border border-white/10 relative group overflow-hidden"
+      transition={{ duration: 0.6, ease: EASE, delay: delay / 1000 }}
+      className="stat-card"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div className="relative z-10">
-        <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center text-primary-400 mb-6 group-hover:scale-110 transition-transform">
-          <Icon size={24} />
-        </div>
-        <div className="text-4xl font-bold text-white mb-2 flex items-baseline gap-1">
-          {isNaN(parseInt(value)) ? value : count}
-          <span className="text-primary-500">{suffix}</span>
-        </div>
-        <div className="text-slate-400 font-medium uppercase tracking-wider text-sm">{label}</div>
+      <div
+        className="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+        style={{ background: color + '18', color }}
+      >
+        <Icon size={20} strokeWidth={1.8} />
       </div>
+      <div
+        className="mb-1 flex items-baseline gap-0.5"
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2.25rem', lineHeight: 1, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}
+      >
+        {isFloat ? count.toFixed(1) : Math.floor(count)}
+        <span style={{ color, fontSize: '1.5rem' }}>{suffix}</span>
+      </div>
+      <p className="text-label" style={{ color: 'var(--text-muted)' }}>{label}</p>
     </motion.div>
   );
 };
 
-// --- Mockup Illustration ---
-const DashboardMockup = () => {
-  return (
-    <div className="relative w-full aspect-[4/3] rounded-3xl border border-white/10 bg-[#12121e] shadow-2xl overflow-hidden group">
-      {/* Navbar Mock */}
-      <div className="h-12 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
-        </div>
-        <div className="ml-4 w-32 h-2 bg-white/10 rounded-full"></div>
+/* ─── Floating Dashboard Mockup ─────────────────────────── */
+const DashboardMockup = () => (
+  <div className="relative w-full max-w-lg mx-auto select-none">
+    {/* Ambient glow */}
+    <div
+      className="absolute top-1/2 left-1/2 w-[110%] h-[110%] rounded-full blur-[100px] opacity-30 pointer-events-none"
+      style={{ transform: 'translate(-50%,-50%)', background: 'linear-gradient(135deg, var(--cyan), var(--purple))' }}
+    />
+
+    {/* Main card */}
+    <motion.div
+      className="animate-float relative rounded-3xl overflow-hidden"
+      style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: '0 40px 80px -20px rgba(0,0,0,0.5)',
+      }}
+    >
+      {/* Titlebar */}
+      <div
+        className="flex items-center gap-2 px-5 py-3.5 border-b"
+        style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}
+      >
+        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(255,99,88,0.6)' }} />
+        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(255,189,46,0.6)' }} />
+        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(40,200,64,0.6)' }} />
+        <div className="ml-auto w-28 h-2 rounded-full" style={{ background: 'var(--border-subtle)' }} />
       </div>
 
-      {/* Content Mock */}
-      <div className="p-6 grid grid-cols-3 gap-4">
-        <div className="col-span-2 space-y-4">
-          <div className="h-32 rounded-2xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 border border-white/10 p-4">
-            <div className="w-24 h-3 bg-white/20 rounded-full mb-3"></div>
-            <div className="w-48 h-2 bg-white/10 rounded-full mb-2"></div>
-            <div className="w-40 h-2 bg-white/10 rounded-full"></div>
+      {/* Body */}
+      <div className="p-6 space-y-4">
+        {/* Top row */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="space-y-1.5">
+            <div className="h-2.5 w-28 rounded-full" style={{ background: 'var(--border-subtle)' }} />
+            <div className="h-2 w-16 rounded-full" style={{ background: 'rgba(255,255,255,0.04)' }} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-24 rounded-2xl bg-white/5 border border-white/5 p-4">
-              <div className="w-12 h-12 rounded-lg bg-primary-500/20 mb-2"></div>
-              <div className="w-16 h-2 bg-white/10 rounded-full"></div>
-            </div>
-            <div className="h-24 rounded-2xl bg-white/5 border border-white/5 p-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/20 mb-2"></div>
-              <div className="w-16 h-2 bg-white/10 rounded-full"></div>
-            </div>
-          </div>
+          <div className="w-9 h-9 rounded-full" style={{ background: 'var(--cyan-glow)', border: '1px solid var(--border-accent)' }} />
         </div>
-        <div className="space-y-4">
-          <div className="h-64 rounded-2xl bg-white/5 border border-white/5 p-4 relative overflow-hidden">
-            <div className="w-full h-full flex flex-col justify-end">
-              <div className="w-full h-1/2 bg-primary-500/10 rounded-t-xl"></div>
-              <div className="w-full h-1/3 bg-primary-500/20 rounded-t-xl scale-x-90 translate-y-1"></div>
+
+        {/* Metric cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { color: 'var(--cyan)',   label: 'Rooms Occupied' },
+            { color: 'var(--purple)', label: 'Complaints' },
+          ].map(({ color, label }) => (
+            <div
+              key={label}
+              className="rounded-2xl p-4 space-y-3"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+            >
+              <div className="w-8 h-8 rounded-xl" style={{ background: color + '22' }} />
+              <div className="space-y-1.5">
+                <div className="h-2 w-full rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="h-2 w-3/5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
+              </div>
             </div>
-            <div className="absolute top-4 left-4 w-16 h-2 bg-white/20 rounded-full"></div>
+          ))}
+        </div>
+
+        {/* Bar chart */}
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="h-2 w-20 rounded-full mb-4" style={{ background: 'rgba(255,255,255,0.07)' }} />
+          <div className="flex items-end gap-1.5 h-16">
+            {[45, 68, 38, 85, 55, 78, 62].map((h, idx) => (
+              <div
+                key={idx}
+                className="flex-1 rounded-t-lg bar"
+                style={{
+                  height: `${h}%`,
+                  background: `linear-gradient(to top, var(--cyan), var(--purple))`,
+                  opacity: 0.55 + (h / 200),
+                  animationDelay: `${idx * 0.08}s`,
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
+    </motion.div>
 
-      {/* Floating Elements */}
-      <motion.div
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-10 -left-10 p-4 rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl"
+    {/* Floating notification — Payment */}
+    <motion.div
+      animate={{ y: [0, -10, 0] }}
+      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute -left-12 top-1/3 rounded-2xl px-4 py-3 flex items-center gap-3 hidden lg:flex"
+      style={{
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-subtle)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+        minWidth: 210,
+      }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: 'rgba(0,212,160,0.15)', color: '#00D4A0' }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
-            <CheckCircle size={20} />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-white leading-tight">Room Allocated</div>
-            <div className="text-[10px] text-slate-400">Successfully verified</div>
-          </div>
-        </div>
-      </motion.div>
+        <CheckCircle size={18} strokeWidth={2} />
+      </div>
+      <div>
+        <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, fontFamily: 'var(--font-body)' }}>
+          Payment Received
+        </p>
+        <p className="text-label" style={{ color: 'var(--text-muted)', marginTop: 2 }}>
+          Transaction #8291
+        </p>
+      </div>
+    </motion.div>
 
-      <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-20 -right-10 p-4 rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl"
+    {/* Floating notification — Verification */}
+    <motion.div
+      animate={{ y: [0, 10, 0] }}
+      transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      className="absolute -right-12 bottom-1/4 rounded-2xl px-4 py-3 flex items-center gap-3 hidden lg:flex"
+      style={{
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-subtle)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+        minWidth: 210,
+      }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: 'var(--cyan-glow)', color: 'var(--cyan)' }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-400">
-            <BarChart size={20} />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-white leading-tight">99.9% Uptime</div>
-            <div className="text-[10px] text-slate-400">System Status: Active</div>
-          </div>
-        </div>
-      </motion.div>
+        <Users size={18} strokeWidth={2} />
+      </div>
+      <div>
+        <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, fontFamily: 'var(--font-body)' }}>
+          Student Verified
+        </p>
+        <p className="text-label" style={{ color: 'var(--text-muted)', marginTop: 2 }}>
+          ID #SID-20291
+        </p>
+      </div>
+    </motion.div>
+  </div>
+);
+
+/* ─── Feature Card ──────────────────────────────────────── */
+const FeatureCard = ({ icon: Icon, title, desc, accent, delay = 0, span = '' }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-60px' }}
+    transition={{ duration: 0.65, ease: EASE, delay }}
+    className={`glass-card p-8 flex flex-col ${span}`}
+    style={{ minHeight: 220 }}
+  >
+    <div
+      className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 flex-shrink-0"
+      style={{ background: accent + '18', color: accent }}
+    >
+      <Icon size={22} strokeWidth={1.8} />
     </div>
-  );
-};
+    <h3 className="text-h3 mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+    <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: 1.65, marginTop: 4 }}>{desc}</p>
+    <div
+      className="mt-auto pt-5 flex items-center gap-1 text-label transition-colors"
+      style={{ color: accent, cursor: 'default' }}
+    >
+      Learn more <ChevronRight size={13} />
+    </div>
+  </motion.div>
+);
 
+/* ─── Step Card ─────────────────────────────────────────── */
+const StepCard = ({ number, icon: Icon, title, desc, accent, delay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.65, ease: EASE, delay }}
+    className="relative flex flex-col items-center text-center p-8"
+  >
+    <div className="relative mb-8">
+      <div
+        className="w-20 h-20 rounded-3xl flex items-center justify-center"
+        style={{
+          background: accent + '14',
+          border: `1px solid ${accent}30`,
+          color: accent,
+        }}
+      >
+        <Icon size={32} strokeWidth={1.5} />
+      </div>
+      <div
+        className="absolute -top-2 -right-2 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black"
+        style={{
+          background: 'var(--bg-base)',
+          border: `2px solid var(--border-subtle)`,
+          color: accent,
+          fontFamily: 'var(--font-display)',
+        }}
+      >
+        {number}
+      </div>
+    </div>
+    <h3 className="text-h3 mb-3" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+    <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: 260 }}>{desc}</p>
+  </motion.div>
+);
+
+/* ─── Testimonial Card ──────────────────────────────────── */
+const TestimonialCard = ({ name, role, content, avatar, rating }) => (
+  <div
+    className="flex-shrink-0 p-7 rounded-3xl flex flex-col justify-between"
+    style={{
+      width: 380,
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-subtle)',
+    }}
+  >
+    <div>
+      <div className="flex gap-1 mb-5" style={{ color: 'var(--gold)' }}>
+        {Array.from({ length: rating }).map((_, j) => (
+          <Star key={j} size={14} fill="currentColor" strokeWidth={0} />
+        ))}
+      </div>
+      <p style={{ fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
+        "{content}"
+      </p>
+    </div>
+    <div className="flex items-center gap-4 mt-7 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+      <div
+        className="w-11 h-11 rounded-full p-0.5"
+        style={{ background: 'linear-gradient(135deg, var(--cyan), var(--purple))' }}
+      >
+        <img src={avatar} alt={name} className="w-full h-full rounded-full block" style={{ objectFit: 'cover' }} />
+      </div>
+      <div>
+        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+          {name}
+        </p>
+        <p className="text-label mt-0.5" style={{ color: 'var(--text-muted)' }}>{role}</p>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─── Testimonials data ─────────────────────────────────── */
+const TESTIMONIALS = [
+  { name: 'Sarah Johnson',  role: 'Student, Year 2',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=1', content: 'UNISTAY made my hostel life effortless. Raising complaints is literally one tap.' },
+  { name: 'Michael Chen',   role: 'Warden',             rating: 5, avatar: 'https://i.pravatar.cc/150?u=2', content: 'Complete visibility over the hostel. Administrative overhead dropped by 50%.' },
+  { name: 'Priya Patel',    role: 'Student, Year 3',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=3', content: 'Clean interface, fast dark mode — feels like a modern product, not a government portal.' },
+  { name: 'James Wilson',   role: 'Administrator',      rating: 5, avatar: 'https://i.pravatar.cc/150?u=4', content: 'Seamless integration with our existing systems. Support team is world-class.' },
+  { name: 'Anita Roy',      role: 'Student, Year 1',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=5', content: 'Digital onboarding was a breeze. Got my room allocated within minutes of arriving.' },
+];
+
+/* ════════════════════════════════════════════════════════════
+   LANDING PAGE
+═══════════════════════════════════════════════════════════ */
 const Landing = () => {
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Student, Year 2",
-      content: "UNISTAY has made my hostel life so much easier. Raising complaints is literally one click away!",
-      avatar: "https://i.pravatar.cc/150?u=1",
-      rating: 5
-    },
-    {
-      name: "Michael Chen",
-      role: "Warden",
-      content: "The dashboard gives me complete visibility over the hostel. Administrative work is cut down by 50%.",
-      avatar: "https://i.pravatar.cc/150?u=2",
-      rating: 5
-    },
-    {
-      name: "Priya Patel",
-      role: "Student, Year 3",
-      content: "I love the clean interface and dark mode. It feels like a modern app, not some old government portal.",
-      avatar: "https://i.pravatar.cc/150?u=3",
-      rating: 4
-    },
-    {
-      name: "James Wilson",
-      role: "Administrator",
-      content: "Seamless integration with our existing systems. The support team is fantastic.",
-      avatar: "https://i.pravatar.cc/150?u=4",
-      rating: 5
-    },
-    {
-      name: "Anita Roy",
-      role: "Student, Year 1",
-      content: "Digital onboarding was a breeze. I got my room allocated in minutes!",
-      avatar: "https://i.pravatar.cc/150?u=5",
-      rating: 5
-    }
-  ];
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
+  const heroY       = useTransform(scrollYProgress, [0, 0.45], [0, 60]);
+
+  /* Stagger for hero text */
+  const container = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.14, delayChildren: 0.15 } },
+  };
+  const item = {
+    hidden: { opacity: 0, y: 32 },
+    show:   { opacity: 1, y: 0,  transition: { duration: 0.75, ease: EASE } },
+  };
 
   return (
-    <div className="min-h-screen bg-brandDark text-white selection:bg-primary-500/30 font-sans overflow-x-hidden">
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+    >
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative min-h-screen pt-32 pb-20 flex items-center overflow-hidden">
-        {/* Animated Background Mesh */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[1000px] h-[1000px] bg-primary-500/20 rounded-full blur-[180px] animate-blob"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-purple-600/10 rounded-full blur-[180px] animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-brandDark/0 via-brandDark/50 to-brandDark"></div>
+      {/* ══ HERO ═══════════════════════════════════════════ */}
+      <section
+        ref={heroRef}
+        className="relative min-h-[100svh] flex items-center overflow-hidden pt-24"
+      >
+        {/* Ambient blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div
+            className="absolute -top-1/4 -left-1/4 w-[70vw] h-[70vw] rounded-full opacity-30 animate-blob-1"
+            style={{ background: 'radial-gradient(circle, var(--cyan) 0%, transparent 70%)', filter: 'blur(80px)' }}
+          />
+          <div
+            className="absolute -bottom-1/4 -right-1/4 w-[60vw] h-[60vw] rounded-full opacity-20 animate-blob-2"
+            style={{ background: 'radial-gradient(circle, var(--purple) 0%, transparent 70%)', filter: 'blur(100px)' }}
+          />
+          {/* dot grid */}
+          <div className="absolute inset-0 dot-grid" />
+          {/* edge fade */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, var(--bg-base)/0 70%, var(--bg-base) 100%)' }}
+          />
         </div>
 
-        <div className="container mx-auto px-6 relative z-10 pt-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-sm font-medium text-primary-400 mb-8">
-                <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-pulse"></span>
-                Reimagining Student Living
-              </div>
+        <div className="max-w-7xl mx-auto px-6 w-full relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
 
-              <h1 className="text-6xl lg:text-8xl font-black font-display tracking-tighter leading-[0.9] mb-8">
-                UNISTAY <br />
-                <TypewriterHeadline />
-              </h1>
+            {/* Left — Text */}
+            <motion.div variants={container} initial="hidden" animate="show">
 
-              <p className="text-xl text-slate-400 mb-10 max-w-xl leading-relaxed">
-                Empower your campus with a smart, unified platform for student management, room allocation, and digital complaints. All in one place.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-6">
-                <Link to="/signup">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group focus:outline-none"
+              {/* Badge */}
+              <motion.div variants={item}>
+                <div
+                  className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-10"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <span
+                    className="relative flex w-2 h-2"
                   >
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                    <Button variant="primary" size="lg" className="relative bg-primary-500 hover:bg-primary-400 border-none px-10 py-5 text-lg flex items-center gap-2 shadow-2xl">
-                      Get Started Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </motion.div>
+                    <span
+                      className="animate-ping-slow absolute inline-flex w-full h-full rounded-full"
+                      style={{ background: 'var(--cyan)', opacity: 0.7 }}
+                    />
+                    <span
+                      className="relative inline-flex w-2 h-2 rounded-full"
+                      style={{ background: 'var(--cyan)', boxShadow: '0 0 8px var(--cyan)' }}
+                    />
+                  </span>
+                  <span className="text-label" style={{ color: 'var(--cyan)' }}>
+                    The Future of Hostel Living
+                  </span>
+                </div>
+              </motion.div>
+
+              {/* Headline */}
+              <motion.div variants={item}>
+                <h1
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 800,
+                    fontSize: 'clamp(3rem, 6.5vw, 5.25rem)',
+                    lineHeight: 0.92,
+                    letterSpacing: '-0.04em',
+                    color: 'var(--text-primary)',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  UNISTAY
+                </h1>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 800,
+                    fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
+                    lineHeight: 0.95,
+                    letterSpacing: '-0.04em',
+                    marginBottom: '1.75rem',
+                    minHeight: '1.05em',
+                  }}
+                >
+                  <Typewriter />
+                </div>
+              </motion.div>
+
+              {/* Sub */}
+              <motion.p
+                variants={item}
+                className="text-body-lg mb-10"
+                style={{ color: 'var(--text-secondary)', maxWidth: 480, lineHeight: 1.65 }}
+              >
+                The most advanced hostel OS for modern universities — from instant room allocation to real-time analytics, all in one place.
+              </motion.p>
+
+              {/* CTA row */}
+              <motion.div variants={item} className="flex flex-wrap items-center gap-4 mb-12">
+                <Link to="/signup">
+                  <button className="btn-primary" style={{ height: '3.25rem', padding: '0 1.75rem', fontSize: '0.9375rem' }}>
+                    <span className="flex items-center gap-2">
+                      Get Started Free
+                      <ArrowRight size={16} strokeWidth={2.5} />
+                    </span>
+                  </button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="ghost" size="lg" className="border border-white/10 hover:bg-white/5 px-10 py-5 text-lg flex items-center gap-2 group">
-                    <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-primary-500 group-hover:border-primary-500 transition-all">
-                      <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                  <button className="btn-ghost flex items-center gap-3" style={{ height: '3.25rem' }}>
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--border-subtle)', border: '1px solid var(--border-subtle)' }}
+                    >
+                      <Play size={12} fill="currentColor" style={{ marginLeft: 2 }} />
                     </div>
                     Watch Demo
-                  </Button>
+                  </button>
                 </Link>
-              </div>
+              </motion.div>
 
-              <div className="mt-12 flex items-center gap-4">
+              {/* Trust strip */}
+              <motion.div
+                variants={item}
+                className="flex items-center gap-4 p-4 rounded-2xl w-fit"
+                style={{
+                  background: 'rgba(255,255,255,0.025)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
                 <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <img key={i} src={`https://i.pravatar.cc/100?u=${i + 10}`} alt="User" className="w-10 h-10 rounded-full border-2 border-brandDark shadow-lg" />
+                  {[1, 2, 3, 4].map(n => (
+                    <img
+                      key={n}
+                      src={`https://i.pravatar.cc/80?u=${n + 30}`}
+                      alt=""
+                      className="w-9 h-9 rounded-full"
+                      style={{ border: '2.5px solid var(--bg-base)', objectFit: 'cover' }}
+                    />
                   ))}
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black"
+                    style={{ border: '2.5px solid var(--bg-base)', background: 'var(--cyan)', color: '#fff', fontFamily: 'var(--font-display)' }}
+                  >
+                    +5k
+                  </div>
                 </div>
-                <div className="text-sm text-slate-400">
-                  <span className="text-white font-bold text-lg block leading-none">10,000+</span>
-                  students across 50+ universities
-                </div>
-              </div>
+                <div className="h-8 w-px" style={{ background: 'var(--border-subtle)' }} />
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
+                  Trusted by <strong style={{ color: 'var(--text-primary)' }}>10,000+ students</strong><br />
+                  across 50+ universities
+                </p>
+              </motion.div>
             </motion.div>
 
+            {/* Right — Mockup */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, rotateY: -20 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="relative perspective-1000 hidden lg:block"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, ease: EASE, delay: 0.3 }}
+              className="hidden lg:block"
+              style={{ perspective: 1200 }}
             >
-              <div className="absolute -inset-20 bg-primary-500/20 rounded-full blur-[120px] mix-blend-screen opacity-50"></div>
               <DashboardMockup />
             </motion.div>
           </div>
         </div>
+
+        {/* Scroll hint */}
+        <motion.div
+          style={{ opacity: heroOpacity, y: heroY }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        >
+          <span className="text-label" style={{ color: 'var(--text-muted)' }}>Scroll to explore</span>
+          <div
+            className="w-px h-10"
+            style={{ background: 'linear-gradient(to bottom, var(--cyan), transparent)' }}
+          />
+        </motion.div>
       </section>
 
-      {/* --- STATS SECTION --- */}
-      <section className="py-20 relative bg-brandDark">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <StatCounter icon={Users} value="10" suffix="k+" label="Active Users" />
-            <StatCounter icon={Layout} value="50" suffix="+" label="Universities" />
-            <StatCounter icon={Zap} value="99" suffix=".9%" label="System Uptime" />
-            <StatCounter icon={Star} value="4.9" suffix="/5" label="Student Rating" />
+      {/* ══ STATS ══════════════════════════════════════════ */}
+      <section className="py-24" style={{ borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={Users}    value="10"   suffix="k+" label="Active Users"        delay={100} color="var(--cyan)"   />
+            <StatCard icon={Globe}    value="50"   suffix="+"  label="Partner Universities" delay={200} color="var(--purple)" />
+            <StatCard icon={Activity} value="99.9" suffix="%"  label="Server Uptime"        delay={300} color="#00D4A0"       />
+            <StatCard icon={Star}     value="4.9"  suffix="/5" label="Student Rating"       delay={400} color="var(--gold)"   />
           </div>
         </div>
       </section>
 
-      {/* --- FEATURES BENTO GRID --- */}
-      <section id="features" className="py-32 relative bg-brandDark overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mb-20">
-            <h2 className="text-5xl lg:text-6xl font-black font-display mb-6 tracking-tight">
-              Everything You Need to <br />
-              <span className="text-primary-500">Run a Smart Hostel</span>
+      {/* ══ FEATURES ═══════════════════════════════════════ */}
+      <section id="features" className="py-32">
+        <div className="max-w-7xl mx-auto px-6">
+
+          {/* Section header */}
+          <div className="max-w-2xl mb-20">
+            <p className="text-label mb-4" style={{ color: 'var(--cyan)' }}>Platform Features</p>
+            <h2 className="text-h1 mb-5" style={{ color: 'var(--text-primary)' }}>
+              Everything you need to run a smart hostel.
             </h2>
-            <p className="text-xl text-slate-400">
-              Powerful tools designed to simplify management and scale your campus operations.
+            <p className="text-body-lg" style={{ color: 'var(--text-secondary)' }}>
+              Purpose-built tools that remove friction for students and administrators alike.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[250px] gap-6">
-            {/* Main Feature */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-8 md:row-span-2 rounded-[2.5rem] bg-gradient-to-br from-primary-600 to-indigo-700 p-12 relative overflow-hidden group border border-white/10"
-            >
-              <div className="absolute right-[-10%] top-[-10%] w-[300px] h-[300px] bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="relative z-10 h-full flex flex-col justify-between">
-                <div>
-                  <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center text-white mb-8 border border-white/20">
-                    <Users size={32} />
-                  </div>
-                  <h3 className="text-4xl font-bold mb-4">Digital Onboarding</h3>
-                  <p className="text-primary-100 text-lg max-w-md leading-relaxed">
-                    Seamless paperless admission process with instant room allocation and digital identity verification for every student.
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 mt-8">
-                  <div className="px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-bold uppercase tracking-widest">Efficiency +80%</div>
-                  <div className="px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-bold uppercase tracking-widest">Real-time</div>
-                </div>
-              </div>
+          {/* Bento grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-              {/* Decorative Mockup Element */}
-              <div className="absolute right-10 bottom-10 w-64 aspect-square bg-brandDark/50 rounded-2xl border border-white/10 rotate-6 translate-y-20 group-hover:translate-y-0 transition-transform duration-500 hidden lg:block">
-                <div className="p-4 space-y-3">
-                  <div className="w-full h-8 rounded bg-primary-500/20"></div>
-                  <div className="w-2/3 h-4 rounded bg-white/10"></div>
-                  <div className="w-1/2 h-4 rounded bg-white/10"></div>
-                </div>
-              </div>
-            </motion.div>
-
+            {/* Hero feature — spans 2 cols */}
             <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-4 md:row-span-1 rounded-[2.5rem] bg-slate-900 border border-white/10 p-8 group relative overflow-hidden"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.65, ease: EASE }}
+              className="md:col-span-2 rounded-3xl p-10 relative overflow-hidden flex flex-col justify-between"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,194,255,0.12) 0%, rgba(124,92,252,0.12) 100%)',
+                border: '1px solid var(--border-accent)',
+                minHeight: 320,
+              }}
             >
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div
+                className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-20 pointer-events-none"
+                style={{ background: 'var(--cyan)', filter: 'blur(80px)', transform: 'translate(30%,-30%)' }}
+              />
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 mb-6">
-                  <Zap size={24} />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Smart Complaints</h3>
-                <p className="text-slate-400 text-sm">Automated ticketing system with real-time status tracking.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-4 md:row-span-1 rounded-[2.5rem] bg-slate-900 border border-white/10 p-8 group relative overflow-hidden"
-            >
-              <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500 mb-6">
-                  <CreditCard size={24} />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Secure Payments</h3>
-                <p className="text-slate-400 text-sm">Integrated gateway for hassle-free fee collection.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-4 md:row-span-1 rounded-[2.5rem] bg-slate-900 border border-white/10 p-8 group relative overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-500 mb-6">
-                  <Smartphone size={24} />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Mobile First</h3>
-                <p className="text-slate-400 text-sm">Perfect experience on every device.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-4 md:row-span-1 rounded-[2.5rem] bg-slate-900 border border-white/10 p-8 group relative overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 mb-6">
-                  <Users size={24} />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Attendance</h3>
-                <p className="text-slate-400 text-sm">Digital tracking with facial recognition support.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="md:col-span-4 md:row-span-1 rounded-[2.5rem] bg-slate-900 border border-white/10 p-8 group relative overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 mb-6">
-                  <BarChart size={24} />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Analytics</h3>
-                <p className="text-slate-400 text-sm">Deep insights into hostel operations.</p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- HOW IT WORKS SECTION --- */}
-      <section className="py-32 bg-brandDark relative">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl font-black font-display mb-4">How It Works</h2>
-            <p className="text-xl text-slate-400 max-w-2xl mx-auto">Three simple steps to transition your hostel to the digital age.</p>
-          </div>
-
-          <div className="relative">
-            {/* Connecting Line (Desktop) */}
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary-500/30 to-transparent -translate-y-1/2 hidden lg:block"></div>
-
-            <div className="grid lg:grid-cols-3 gap-12 relative z-10">
-              {[
-                {
-                  step: "01",
-                  title: "Register & Verify",
-                  desc: "Quick sign-up with institutional ID verification for absolute security.",
-                  icon: Shield,
-                  color: "bg-primary-500"
-                },
-                {
-                  step: "02",
-                  title: "Get Room Allocated",
-                  desc: "Automated smart allocation based on preferences and availability.",
-                  icon: Layout,
-                  color: "bg-purple-500"
-                },
-                {
-                  step: "03",
-                  title: "Manage Everything",
-                  desc: "Control complaints, payments, and leave requests from your dashboard.",
-                  icon: Smartphone,
-                  color: "bg-indigo-500"
-                }
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.2 }}
-                  className="relative group text-center"
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-7"
+                  style={{ background: 'rgba(0,194,255,0.15)', color: 'var(--cyan)', border: '1px solid var(--border-accent)' }}
                 >
-                  <div className={`w-24 h-24 rounded-full ${item.color} flex items-center justify-center text-white mx-auto mb-10 shadow-2xl relative z-10 group-hover:scale-110 transition-transform`}>
-                    <item.icon size={40} />
-                    <div className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-brandDark border-4 border-slate-800 flex items-center justify-center text-xs font-bold font-display">{item.step}</div>
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
-                  <p className="text-slate-400 leading-relaxed px-6">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- TESTIMONIALS SECTION --- */}
-      <section id="testimonials" className="py-32 bg-brandDark overflow-hidden">
-        <div className="container mx-auto px-6 mb-16">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-6">
-            <div>
-              <h2 className="text-5xl font-black font-display mb-4 tracking-tighter">Loved by Students</h2>
-              <p className="text-xl text-slate-400">Join the community transition to smart living.</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="h-14 w-14 rounded-full border border-white/10 flex items-center justify-center text-slate-400 cursor-not-allowed opacity-50"><ArrowRight className="rotate-180" /></div>
-              <div className="h-14 w-14 rounded-full border border-primary-500 flex items-center justify-center text-primary-500 cursor-pointer animate-pulse"><ArrowRight /></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-8 px-6 overflow-x-auto scrollbar-hide">
-          {testimonials.map((t, idx) => (
-            <motion.div
-              key={idx}
-              className="min-w-[400px] p-10 rounded-[2.5rem] bg-white/5 backdrop-blur-xl border border-white/10 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex gap-1 mb-6 text-yellow-500">
-                  {[...Array(t.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                  <Layers size={26} strokeWidth={1.6} />
                 </div>
-                <p className="text-lg text-white leading-relaxed mb-10 italic">"{t.content}"</p>
+                <h3 className="text-h2 mb-3" style={{ color: 'var(--text-primary)' }}>On-Click Digital Onboarding</h3>
+                <p className="text-body" style={{ color: 'var(--text-secondary)', maxWidth: 480, lineHeight: 1.7 }}>
+                  Students upload their documents once. AI verifies instantly. Rooms are allocated before they finish unpacking. Zero paper. Zero queues.
+                </p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full p-1 bg-gradient-to-tr from-primary-500 to-purple-500">
-                  <img src={t.avatar} className="w-full h-full rounded-full border-2 border-brandDark" alt={t.name} />
-                </div>
-                <div>
-                  <div className="font-bold text-white leading-none mb-1">{t.name}</div>
-                  <div className="text-xs text-slate-400 font-medium">{t.role}</div>
-                </div>
+              <div className="relative z-10 flex gap-3 mt-8">
+                {['AI Verification', 'Instant Allocation', 'Digital ID'].map(tag => (
+                  <span
+                    key={tag}
+                    className="text-label px-4 py-1.5 rounded-full"
+                    style={{
+                      background: 'rgba(0,194,255,0.08)',
+                      border: '1px solid var(--border-accent)',
+                      color: 'var(--cyan)',
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </motion.div>
-          ))}
+
+            <FeatureCard delay={0.1} icon={Zap}        title="Smart Complaints"   desc="Real-time issue tracking with automated warden notifications and escalation timers."   accent="var(--purple)" />
+            <FeatureCard delay={0.2} icon={CreditCard} title="Secure Payments"    desc="Enterprise-grade payment gateway. Fee collection, receipts, and financial history in one dashboard." accent="var(--cyan)" />
+            <FeatureCard delay={0.3} icon={Smartphone}  title="Mobile-First Core" desc="Native-level performance on every screen. Students manage everything from their pocket." accent="#00D4A0" />
+            <FeatureCard delay={0.4} icon={BarChart2}   title="Analytics Dashboard" desc="Occupancy rates, complaint trends, revenue graphs — actionable insights at a glance." accent="var(--gold)" />
+          </div>
         </div>
       </section>
 
-      {/* --- FINAL CTA SECTION --- */}
-      <section className="py-32">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="rounded-[4rem] bg-gradient-to-tr from-brandDark via-slate-900 to-brandDark border border-white/10 p-16 md:p-32 text-center relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+      {/* ══ HOW IT WORKS ═══════════════════════════════════ */}
+      <section
+        className="py-32"
+        style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)' }}
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-20">
+            <p className="text-label mb-4" style={{ color: 'var(--purple)' }}>How It Works</p>
+            <h2 className="text-h1 mb-5" style={{ color: 'var(--text-primary)' }}>Up and running in three steps.</h2>
+            <p className="text-body-lg" style={{ color: 'var(--text-secondary)' }}>
+              No lengthy onboarding. No IT team required. Just a modern hostel, fully digital.
+            </p>
+          </div>
 
-            <div className="relative z-10 max-w-4xl mx-auto">
-              <h2 className="text-5xl md:text-7xl font-black font-display mb-10 leading-tight">
-                Ready to Level Up Your <br />
-                <span className="bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">Campus Experience?</span>
+          {/* Steps */}
+          <div className="relative">
+            {/* Connecting line */}
+            <div
+              className="absolute top-10 left-1/6 right-1/6 h-px hidden lg:block"
+              style={{ background: 'linear-gradient(90deg, transparent, var(--border-accent), transparent)' }}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StepCard number="01" icon={Shield} title="Register Your Institution"  desc="Securely onboard your hostel and sync student records in minutes."               accent="var(--cyan)"   delay={0.0} />
+              <StepCard number="02" icon={Layout} title="Configure Rooms & Policies"  desc="Set up blocks, rooms, fee structures, and staff permissions in our unified grid."  accent="var(--purple)" delay={0.15} />
+              <StepCard number="03" icon={Globe}  title="Go Live"                     desc="Open your digital doors — students self-manage, wardens oversee, data flows freely." accent="#00D4A0"       delay={0.30} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
+      <section id="testimonials" className="py-32" style={{ overflow: 'hidden' }}>
+        <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
+          <p className="text-label mb-4" style={{ color: 'var(--gold)' }}>Testimonials</p>
+          <h2 className="text-h1" style={{ color: 'var(--text-primary)' }}>Loved by students & wardens.</h2>
+        </div>
+
+        {/* Infinite marquee */}
+        <div className="relative">
+          {/* Edge fades */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, var(--bg-base), transparent)' }}
+          />
+          <div
+            className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to left, var(--bg-base), transparent)' }}
+          />
+          <div className="flex gap-5 animate-marquee pl-5" style={{ width: 'max-content' }}>
+            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+              <TestimonialCard key={i} {...t} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ FINAL CTA ══════════════════════════════════════ */}
+      <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: EASE }}
+            className="relative rounded-[2.5rem] p-16 md:p-24 text-center overflow-hidden"
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            {/* Glows */}
+            <div
+              className="absolute -top-1/2 -left-1/4 w-3/4 h-full rounded-full opacity-20 pointer-events-none"
+              style={{ background: 'var(--cyan)', filter: 'blur(120px)' }}
+            />
+            <div
+              className="absolute -bottom-1/2 -right-1/4 w-3/4 h-full rounded-full opacity-15 pointer-events-none"
+              style={{ background: 'var(--purple)', filter: 'blur(120px)' }}
+            />
+
+            <div className="relative z-10">
+              <p className="text-label mb-5" style={{ color: 'var(--cyan)' }}>Ready to upgrade?</p>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 800,
+                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.04em',
+                  color: 'var(--text-primary)',
+                  marginBottom: '1.5rem',
+                }}
+              >
+                Transform your campus.<br />
+                <span className="gradient-text">Starting today.</span>
               </h2>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Link to="/signup">
-                  <Button variant="primary" size="lg" className="px-12 py-6 text-xl rounded-2xl shadow-2xl shadow-primary-500/20">
-                    Build Your Smart Hostel Now
-                  </Button>
-                </Link>
+              <p
+                className="text-body-lg mb-10 mx-auto"
+                style={{ color: 'var(--text-secondary)', maxWidth: 520 }}
+              >
+                Join thousands of students and administrators who've modernised their campus life with UNISTAY.
+              </p>
+
+              {/* Split CTA — clear login vs signup */}
+              <div
+                className="inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-2 rounded-2xl mb-8"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)' }}
+              >
                 <Link to="/login">
-                  <Button variant="ghost" size="lg" className="px-12 py-6 text-xl rounded-2xl border border-white/10 hover:bg-white/5">
-                    View Interactive Demo
-                  </Button>
+                  <button
+                    className="btn-ghost w-full sm:w-auto"
+                    style={{ height: '3rem', padding: '0 1.5rem', borderRadius: '0.875rem', borderColor: 'transparent' }}
+                  >
+                    Already a member? Log In
+                  </button>
+                </Link>
+                <Link to="/signup">
+                  <button
+                    className="btn-primary w-full sm:w-auto"
+                    style={{ height: '3rem', padding: '0 1.75rem', borderRadius: '0.875rem', fontSize: '0.9375rem' }}
+                  >
+                    <span className="flex items-center gap-2">
+                      Create Free Account
+                      <ArrowRight size={16} strokeWidth={2.5} />
+                    </span>
+                  </button>
                 </Link>
               </div>
-              <p className="mt-10 text-slate-500 font-medium">No credit card required. Free for up to 50 students.</p>
+
+              <p className="text-label" style={{ color: 'var(--text-muted)' }}>
+                No credit card required · Cancel anytime · GDPR compliant
+              </p>
             </div>
           </motion.div>
         </div>
       </section>
 
       <Footer />
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-        
-        body {
-          font-family: 'Inter', sans-serif;
-          background-color: #0a0a0f;
-        }
-
-        .font-display {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 };

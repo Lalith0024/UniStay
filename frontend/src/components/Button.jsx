@@ -15,26 +15,26 @@ const Button = ({
   type = 'button',
   ...props
 }) => {
-  const baseStyles = "relative inline-flex items-center justify-center rounded-xl font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden";
+  const baseStyles = "relative inline-flex items-center justify-center font-black uppercase tracking-widest transition-all duration-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden";
 
   const variants = {
-    primary: "bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-lg shadow-primary-500/25",
-    secondary: "bg-white dark:bg-brandDark-800 text-slate-900 dark:text-white border border-slate-200 dark:border-brandDark-700 hover:bg-slate-50 dark:hover:bg-brandDark-700 focus:ring-slate-200 dark:focus:ring-dark-700",
-    ghost: "bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-brandDark-800 hover:text-slate-900 dark:hover:text-white",
-    outline: "border-2 border-primary-500 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20",
-    gradient: "bg-gradient-to-r from-primary-500 to-teal-400 text-white shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40"
+    primary: "bg-primary-500 text-brandDark hover:bg-white border-none shadow-[0_10px_30px_-10px_rgba(0,191,255,0.4)] hover:shadow-[0_20px_40px_-5px_rgba(0,191,255,0.6)]",
+    secondary: "bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20",
+    ghost: "bg-transparent text-slate-400 hover:text-white",
+    outline: "border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-brandDark",
+    gradient: "bg-gradient-to-r from-primary-500 to-primary-600 text-brandDark shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40"
   };
 
   const sizes = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg",
-    icon: "p-2"
+    sm: "px-6 py-3 text-[10px] rounded-xl",
+    md: "px-8 py-4 text-xs rounded-2xl",
+    lg: "px-12 py-6 text-sm rounded-[1.5rem]",
+    icon: "p-3 rounded-xl"
   };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={twMerge(clsx(baseStyles, variants[variant], sizes[size], className))}
       disabled={isLoading || disabled}
@@ -46,14 +46,9 @@ const Button = ({
       <span className="relative z-10 flex items-center gap-2">
         {children}
       </span>
-      {variant === 'gradient' && (
-        <motion.div
-          className="absolute inset-0 bg-white/20"
-          initial={{ x: '-100%' }}
-          whileHover={{ x: '100%' }}
-          transition={{ duration: 0.5 }}
-        />
-      )}
+
+      {/* Glossy Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
     </motion.button>
   );
 };
