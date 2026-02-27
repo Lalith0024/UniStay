@@ -1,60 +1,33 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight, Shield, Zap, Smartphone, Star, Users, CreditCard,
-  BarChart2, Layout, Globe, Activity, CheckCircle, Play,
-  Bell, ChevronRight, Layers,
+  ArrowRight, Shield, Zap, Smartphone, CheckCircle, Users,
+  CreditCard, BarChart3, Layout, Bell, ChevronRight,
+  Sparkles, Lock, Clock, FileText, Home, MessageSquare,
+  Calendar, Wallet, Settings, TrendingUp, Award
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-/* ─── Easing ───────────────────────────────────────────── */
-const EASE = [0.16, 1, 0.3, 1];
+/* ─── Easing Curves ─────────────────────────────────────── */
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
+const EASE_SPRING = { type: "spring", stiffness: 100, damping: 15 };
 
-/* ─── Typewriter ────────────────────────────────────────── */
-const WORDS = ['Smart Living.', 'Seamless Management.', 'Modern Campus.'];
-
-const Typewriter = () => {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI(v => (v + 1) % WORDS.length), 3000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <span className="inline-block" style={{ position: 'relative', overflow: 'hidden', display: 'block', lineHeight: 1 }}>
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={i}
-          initial={{ y: '110%', opacity: 0 }}
-          animate={{ y: 0,      opacity: 1 }}
-          exit={{    y: '-110%', opacity: 0 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="gradient-text"
-          style={{ display: 'block' }}
-        >
-          {WORDS[i]}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-};
-
-/* ─── Animated Counter ──────────────────────────────────── */
+/* ─── Animated Counter Hook ─────────────────────────────── */
 const useCounter = (target, isInView, delay = 0) => {
   const [value, setValue] = useState(0);
   useEffect(() => {
     if (!isInView) return;
     const timeout = setTimeout(() => {
-      const isFloat = !Number.isInteger(target);
-      const steps = 60;
-      const interval = 1800 / steps;
+      const steps = 50;
+      const interval = 1500 / steps;
       let step = 0;
       const timer = setInterval(() => {
         step++;
         const progress = step / steps;
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setValue(parseFloat((target * eased).toFixed(isFloat ? 1 : 0)));
+        const eased = 1 - Math.pow(1 - progress, 4);
+        setValue(Math.floor(target * eased));
         if (step >= steps) { setValue(target); clearInterval(timer); }
       }, interval);
     }, delay);
@@ -63,713 +36,737 @@ const useCounter = (target, isInView, delay = 0) => {
   return value;
 };
 
-const StatCard = ({ icon: Icon, value, suffix, label, delay, color }) => {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
-  const count = useCounter(parseFloat(value), inView, delay);
-  const isFloat = !Number.isInteger(parseFloat(value));
+/* ─── Typewriter Effect ─────────────────────────────────── */
+const WORDS = ['Simplified.', 'Digitized.', 'Modernized.'];
+
+const Typewriter = () => {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI(v => (v + 1) % WORDS.length), 2800);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span className="inline-block relative overflow-hidden" style={{ height: '1.1em' }}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={i}
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '-100%', opacity: 0 }}
+          transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
+          className="gradient-text block"
+        >
+          {WORDS[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+};
+
+/* ─── Feature Card Component ────────────────────────────── */
+const FeatureCard = ({ icon: Icon, title, description, delay = 0, color = "cyan" }) => {
+  const colorMap = {
+    cyan: 'from-cyan-500/20 to-blue-500/20 text-cyan-400 border-cyan-500/30',
+    purple: 'from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30',
+    emerald: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30',
+    amber: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30',
+    rose: 'from-rose-500/20 to-red-500/20 text-rose-400 border-rose-500/30',
+  };
 
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, ease: EASE, delay: delay / 1000 }}
-      className="stat-card"
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.6, ease: EASE_OUT_EXPO, delay }}
+      className="group relative"
     >
-      <div
-        className="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
-        style={{ background: color + '18', color }}
+      <div className={`relative overflow-hidden rounded-2xl p-6 h-full transition-all duration-500
+        bg-[var(--bg-card)] border border-[var(--border-subtle)] 
+        hover:border-[var(--border-accent)] hover:shadow-2xl hover:shadow-${color}-500/10
+        hover:-translate-y-1`}
       >
-        <Icon size={20} strokeWidth={1.8} />
+        {/* Glow effect */}
+        <div className={`absolute -inset-px rounded-2xl bg-gradient-to-br ${colorMap[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`} />
+        
+        <div className="relative z-10">
+          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} border ${colorMap[color].split(' ')[3]} 
+            flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}>
+            <Icon size={22} strokeWidth={1.8} />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 tracking-tight">{title}</h3>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
+        </div>
       </div>
-      <div
-        className="mb-1 flex items-baseline gap-0.5"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2.25rem', lineHeight: 1, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}
-      >
-        {isFloat ? count.toFixed(1) : Math.floor(count)}
-        <span style={{ color, fontSize: '1.5rem' }}>{suffix}</span>
-      </div>
-      <p className="text-label" style={{ color: 'var(--text-muted)' }}>{label}</p>
     </motion.div>
   );
 };
 
-/* ─── Floating Dashboard Mockup ─────────────────────────── */
-const DashboardMockup = () => (
-  <div className="relative w-full max-w-lg mx-auto select-none">
-    {/* Ambient glow */}
-    <div
-      className="absolute top-1/2 left-1/2 w-[110%] h-[110%] rounded-full blur-[100px] opacity-30 pointer-events-none"
-      style={{ transform: 'translate(-50%,-50%)', background: 'linear-gradient(135deg, var(--cyan), var(--purple))' }}
-    />
-
-    {/* Main card */}
-    <motion.div
-      className="animate-float relative rounded-3xl overflow-hidden"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-subtle)',
-        boxShadow: '0 40px 80px -20px rgba(0,0,0,0.5)',
-      }}
-    >
-      {/* Titlebar */}
-      <div
-        className="flex items-center gap-2 px-5 py-3.5 border-b"
-        style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}
-      >
-        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(255,99,88,0.6)' }} />
-        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(255,189,46,0.6)' }} />
-        <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(40,200,64,0.6)' }} />
-        <div className="ml-auto w-28 h-2 rounded-full" style={{ background: 'var(--border-subtle)' }} />
-      </div>
-
-      {/* Body */}
-      <div className="p-6 space-y-4">
-        {/* Top row */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="space-y-1.5">
-            <div className="h-2.5 w-28 rounded-full" style={{ background: 'var(--border-subtle)' }} />
-            <div className="h-2 w-16 rounded-full" style={{ background: 'rgba(255,255,255,0.04)' }} />
-          </div>
-          <div className="w-9 h-9 rounded-full" style={{ background: 'var(--cyan-glow)', border: '1px solid var(--border-accent)' }} />
-        </div>
-
-        {/* Metric cards */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { color: 'var(--cyan)',   label: 'Rooms Occupied' },
-            { color: 'var(--purple)', label: 'Complaints' },
-          ].map(({ color, label }) => (
-            <div
-              key={label}
-              className="rounded-2xl p-4 space-y-3"
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
-            >
-              <div className="w-8 h-8 rounded-xl" style={{ background: color + '22' }} />
-              <div className="space-y-1.5">
-                <div className="h-2 w-full rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <div className="h-2 w-3/5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bar chart */}
-        <div
-          className="rounded-2xl p-4"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
-        >
-          <div className="h-2 w-20 rounded-full mb-4" style={{ background: 'rgba(255,255,255,0.07)' }} />
-          <div className="flex items-end gap-1.5 h-16">
-            {[45, 68, 38, 85, 55, 78, 62].map((h, idx) => (
-              <div
-                key={idx}
-                className="flex-1 rounded-t-lg bar"
-                style={{
-                  height: `${h}%`,
-                  background: `linear-gradient(to top, var(--cyan), var(--purple))`,
-                  opacity: 0.55 + (h / 200),
-                  animationDelay: `${idx * 0.08}s`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-
-    {/* Floating notification — Payment */}
-    <motion.div
-      animate={{ y: [0, -10, 0] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute -left-12 top-1/3 rounded-2xl px-4 py-3 flex items-center gap-3 hidden lg:flex"
-      style={{
-        background: 'var(--bg-elevated)',
-        border: '1px solid var(--border-subtle)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-        minWidth: 210,
-      }}
-    >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: 'rgba(0,212,160,0.15)', color: '#00D4A0' }}
-      >
-        <CheckCircle size={18} strokeWidth={2} />
-      </div>
-      <div>
-        <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, fontFamily: 'var(--font-body)' }}>
-          Payment Received
-        </p>
-        <p className="text-label" style={{ color: 'var(--text-muted)', marginTop: 2 }}>
-          Transaction #8291
-        </p>
-      </div>
-    </motion.div>
-
-    {/* Floating notification — Verification */}
-    <motion.div
-      animate={{ y: [0, 10, 0] }}
-      transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      className="absolute -right-12 bottom-1/4 rounded-2xl px-4 py-3 flex items-center gap-3 hidden lg:flex"
-      style={{
-        background: 'var(--bg-elevated)',
-        border: '1px solid var(--border-subtle)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-        minWidth: 210,
-      }}
-    >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: 'var(--cyan-glow)', color: 'var(--cyan)' }}
-      >
-        <Users size={18} strokeWidth={2} />
-      </div>
-      <div>
-        <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, fontFamily: 'var(--font-body)' }}>
-          Student Verified
-        </p>
-        <p className="text-label" style={{ color: 'var(--text-muted)', marginTop: 2 }}>
-          ID #SID-20291
-        </p>
-      </div>
-    </motion.div>
-  </div>
-);
-
-/* ─── Feature Card ──────────────────────────────────────── */
-const FeatureCard = ({ icon: Icon, title, desc, accent, delay = 0, span = '' }) => (
+/* ─── Step Card Component ───────────────────────────────── */
+const StepCard = ({ number, icon: Icon, title, description, delay = 0 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-60px' }}
-    transition={{ duration: 0.65, ease: EASE, delay }}
-    className={`glass-card p-8 flex flex-col ${span}`}
-    style={{ minHeight: 220 }}
-  >
-    <div
-      className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 flex-shrink-0"
-      style={{ background: accent + '18', color: accent }}
-    >
-      <Icon size={22} strokeWidth={1.8} />
-    </div>
-    <h3 className="text-h3 mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-    <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: 1.65, marginTop: 4 }}>{desc}</p>
-    <div
-      className="mt-auto pt-5 flex items-center gap-1 text-label transition-colors"
-      style={{ color: accent, cursor: 'default' }}
-    >
-      Learn more <ChevronRight size={13} />
-    </div>
-  </motion.div>
-);
-
-/* ─── Step Card ─────────────────────────────────────────── */
-const StepCard = ({ number, icon: Icon, title, desc, accent, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24 }}
+    initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
-    transition={{ duration: 0.65, ease: EASE, delay }}
-    className="relative flex flex-col items-center text-center p-8"
+    transition={{ duration: 0.6, ease: EASE_OUT_EXPO, delay }}
+    className="relative text-center"
   >
-    <div className="relative mb-8">
-      <div
-        className="w-20 h-20 rounded-3xl flex items-center justify-center"
-        style={{
-          background: accent + '14',
-          border: `1px solid ${accent}30`,
-          color: accent,
-        }}
-      >
-        <Icon size={32} strokeWidth={1.5} />
+    <div className="relative inline-flex mb-6">
+      <div className="w-16 h-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]
+        flex items-center justify-center text-[var(--cyan)] transition-all duration-300 hover:scale-105 hover:border-[var(--border-accent)]">
+        <Icon size={28} strokeWidth={1.5} />
       </div>
-      <div
-        className="absolute -top-2 -right-2 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black"
-        style={{
-          background: 'var(--bg-base)',
-          border: `2px solid var(--border-subtle)`,
-          color: accent,
-          fontFamily: 'var(--font-display)',
-        }}
-      >
+      <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[var(--bg-card)] border-2 border-[var(--border-subtle)]
+        flex items-center justify-center text-xs font-bold text-[var(--cyan)]">
         {number}
       </div>
     </div>
-    <h3 className="text-h3 mb-3" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-    <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: 260 }}>{desc}</p>
+    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
+    <p className="text-sm text-[var(--text-secondary)] max-w-[260px] mx-auto leading-relaxed">{description}</p>
   </motion.div>
 );
 
 /* ─── Testimonial Card ──────────────────────────────────── */
-const TestimonialCard = ({ name, role, content, avatar, rating }) => (
-  <div
-    className="flex-shrink-0 p-7 rounded-3xl flex flex-col justify-between"
-    style={{
-      width: 380,
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-subtle)',
-    }}
+const TestimonialCard = ({ quote, author, role, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, ease: EASE_OUT_EXPO, delay }}
+    className="group relative"
   >
-    <div>
-      <div className="flex gap-1 mb-5" style={{ color: 'var(--gold)' }}>
-        {Array.from({ length: rating }).map((_, j) => (
-          <Star key={j} size={14} fill="currentColor" strokeWidth={0} />
+    <div className="relative p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)]
+      hover:border-[var(--border-accent)] transition-all duration-300">
+      <div className="flex gap-1 mb-4">
+        {[...Array(5)].map((_, i) => (
+          <Sparkles key={i} size={14} className="text-amber-400 fill-amber-400/30" />
         ))}
       </div>
-      <p style={{ fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
-        "{content}"
-      </p>
-    </div>
-    <div className="flex items-center gap-4 mt-7 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-      <div
-        className="w-11 h-11 rounded-full p-0.5"
-        style={{ background: 'linear-gradient(135deg, var(--cyan), var(--purple))' }}
-      >
-        <img src={avatar} alt={name} className="w-full h-full rounded-full block" style={{ objectFit: 'cover' }} />
-      </div>
-      <div>
-        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
-          {name}
-        </p>
-        <p className="text-label mt-0.5" style={{ color: 'var(--text-muted)' }}>{role}</p>
+      <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">&ldquo;{quote}&rdquo;</p>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--purple)] flex items-center justify-center text-white font-semibold text-sm">
+          {author[0]}
+        </div>
+        <div>
+          <p className="text-sm font-medium text-[var(--text-primary)]">{author}</p>
+          <p className="text-xs text-[var(--text-muted)]">{role}</p>
+        </div>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
-/* ─── Testimonials data ─────────────────────────────────── */
-const TESTIMONIALS = [
-  { name: 'Sarah Johnson',  role: 'Student, Year 2',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=1', content: 'UNISTAY made my hostel life effortless. Raising complaints is literally one tap.' },
-  { name: 'Michael Chen',   role: 'Warden',             rating: 5, avatar: 'https://i.pravatar.cc/150?u=2', content: 'Complete visibility over the hostel. Administrative overhead dropped by 50%.' },
-  { name: 'Priya Patel',    role: 'Student, Year 3',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=3', content: 'Clean interface, fast dark mode — feels like a modern product, not a government portal.' },
-  { name: 'James Wilson',   role: 'Administrator',      rating: 5, avatar: 'https://i.pravatar.cc/150?u=4', content: 'Seamless integration with our existing systems. Support team is world-class.' },
-  { name: 'Anita Roy',      role: 'Student, Year 1',   rating: 5, avatar: 'https://i.pravatar.cc/150?u=5', content: 'Digital onboarding was a breeze. Got my room allocated within minutes of arriving.' },
-];
+/* ─── Dashboard Preview Component ───────────────────────── */
+const DashboardPreview = () => {
+  return (
+    <div className="relative w-full max-w-4xl mx-auto">
+      {/* Ambient glow */}
+      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 
+        rounded-3xl blur-3xl opacity-50" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 1, ease: EASE_OUT_EXPO, delay: 0.3 }}
+        className="relative rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl"
+        style={{ background: 'var(--bg-card)' }}
+      >
+        {/* Browser chrome */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-400/80" />
+            <div className="w-3 h-3 rounded-full bg-amber-400/80" />
+            <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
+          </div>
+          <div className="ml-4 flex-1 max-w-md">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)]">
+              <Lock size={12} className="text-[var(--text-muted)]" />
+              <span className="text-xs text-[var(--text-muted)]">unistay.app/dashboard</span>
+            </div>
+          </div>
+        </div>
 
-/* ════════════════════════════════════════════════════════════
-   LANDING PAGE
-═══════════════════════════════════════════════════════════ */
+        {/* Dashboard content */}
+        <div className="p-6 space-y-4">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dashboard Overview</h4>
+              <p className="text-xs text-[var(--text-muted)]">Welcome back, Admin</p>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center">
+                <Bell size={14} className="text-[var(--text-secondary)]" />
+              </div>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--cyan)] to-[var(--purple)]" />
+            </div>
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Total Students', value: '248', icon: Users, color: 'text-cyan-400' },
+              { label: 'Active Rooms', value: '156', icon: Home, color: 'text-purple-400' },
+              { label: 'Pending Requests', value: '12', icon: Clock, color: 'text-amber-400' },
+            ].map((stat, i) => (
+              <div key={i} className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <stat.icon size={14} className={stat.color} />
+                  <span className="text-xs text-[var(--text-muted)]">{stat.label}</span>
+                </div>
+                <p className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Chart area */}
+          <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-[var(--text-primary)]">Occupancy Rate</span>
+              <div className="flex items-center gap-1 text-emerald-400 text-xs">
+                <TrendingUp size={12} />
+                <span>+12%</span>
+              </div>
+            </div>
+            <div className="flex items-end gap-2 h-24">
+              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 75, 50, 88].map((h, i) => (
+                <div key={i} className="flex-1 rounded-t-sm bg-gradient-to-t from-[var(--cyan)]/60 to-[var(--purple)]/60"
+                  style={{ height: `${h}%`, opacity: 0.3 + (h / 200) }} />
+              ))}
+            </div>
+            <div className="flex justify-between mt-2 text-[10px] text-[var(--text-muted)]">
+              <span>Jan</span><span>Mar</span><span>Jun</span><span>Sep</span><span>Dec</span>
+            </div>
+          </div>
+
+          {/* Recent activity */}
+          <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+            <span className="text-sm font-medium text-[var(--text-primary)]">Recent Activity</span>
+            <div className="mt-3 space-y-2">
+              {[
+                { text: 'New complaint filed', time: '2 min ago', icon: MessageSquare },
+                { text: 'Room allocation updated', time: '15 min ago', icon: Home },
+                { text: 'Payment received', time: '1 hour ago', icon: CreditCard },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 text-xs">
+                  <div className="w-6 h-6 rounded-lg bg-[var(--bg-card)] flex items-center justify-center">
+                    <item.icon size={12} className="text-[var(--text-secondary)]" />
+                  </div>
+                  <span className="text-[var(--text-secondary)] flex-1">{item.text}</span>
+                  <span className="text-[var(--text-muted)]">{item.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Floating notification */}
+      <motion.div
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -left-8 top-1/4 hidden lg:block"
+      >
+        <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-xl
+          backdrop-blur-xl flex items-center gap-3 min-w-[200px]">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+            <CheckCircle size={18} className="text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-[var(--text-primary)]">Payment Confirmed</p>
+            <p className="text-[10px] text-[var(--text-muted)]">Room 302 - Semester Fee</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Floating notification 2 */}
+      <motion.div
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute -right-8 bottom-1/3 hidden lg:block"
+      >
+        <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-xl
+          backdrop-blur-xl flex items-center gap-3 min-w-[200px]">
+          <div className="w-10 h-10 rounded-lg bg-[var(--cyan-glow)] flex items-center justify-center">
+            <FileText size={18} className="text-[var(--cyan)]" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-[var(--text-primary)]">Leave Approved</p>
+            <p className="text-[10px] text-[var(--text-muted)]">Student ID: ST-2847</p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+/* ─── Main Landing Page ─────────────────────────────────── */
 const Landing = () => {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
-  const heroY       = useTransform(scrollYProgress, [0, 0.45], [0, 60]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, 100]);
 
-  /* Stagger for hero text */
-  const container = {
+  const containerVariants = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.14, delayChildren: 0.15 } },
+    show: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
   };
-  const item = {
-    hidden: { opacity: 0, y: 32 },
-    show:   { opacity: 1, y: 0,  transition: { duration: 0.75, ease: EASE } },
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT_EXPO } }
   };
 
   return (
-    <div
-      className="min-h-screen overflow-x-hidden"
-      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
-    >
+    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
       <Navbar />
 
-      {/* ══ HERO ═══════════════════════════════════════════ */}
-      <section
-        ref={heroRef}
-        className="relative min-h-[100svh] flex items-center overflow-hidden pt-24"
-      >
-        {/* Ambient blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute -top-1/4 -left-1/4 w-[70vw] h-[70vw] rounded-full opacity-30 animate-blob-1"
-            style={{ background: 'radial-gradient(circle, var(--cyan) 0%, transparent 70%)', filter: 'blur(80px)' }}
-          />
-          <div
-            className="absolute -bottom-1/4 -right-1/4 w-[60vw] h-[60vw] rounded-full opacity-20 animate-blob-2"
-            style={{ background: 'radial-gradient(circle, var(--purple) 0%, transparent 70%)', filter: 'blur(100px)' }}
-          />
-          {/* dot grid */}
-          <div className="absolute inset-0 dot-grid" />
-          {/* edge fade */}
-          <div
-            className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, var(--bg-base)/0 70%, var(--bg-base) 100%)' }}
-          />
+      {/* ═══ HERO SECTION ═══ */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-30"
+            style={{ background: 'radial-gradient(circle, var(--cyan) 0%, transparent 70%)', filter: 'blur(100px)' }} />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, var(--purple) 0%, transparent 70%)', filter: 'blur(100px)' }} />
+          <div className="absolute inset-0 dot-grid opacity-10" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 w-full relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
-
-            {/* Left — Text */}
-            <motion.div variants={container} initial="hidden" animate="show">
-
+        <motion.div style={{ opacity: heroOpacity, y: heroY }} className="max-w-7xl mx-auto px-6 w-full relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Left content */}
+            <motion.div variants={containerVariants} initial="hidden" animate="show">
               {/* Badge */}
-              <motion.div variants={item}>
-                <div
-                  className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-10"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <span
-                    className="relative flex w-2 h-2"
-                  >
-                    <span
-                      className="animate-ping-slow absolute inline-flex w-full h-full rounded-full"
-                      style={{ background: 'var(--cyan)', opacity: 0.7 }}
-                    />
-                    <span
-                      className="relative inline-flex w-2 h-2 rounded-full"
-                      style={{ background: 'var(--cyan)', boxShadow: '0 0 8px var(--cyan)' }}
-                    />
+              <motion.div variants={itemVariants}>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8
+                  bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <span className="relative flex w-2 h-2">
+                    <span className="animate-ping absolute inline-flex w-full h-full rounded-full bg-[var(--cyan)] opacity-75" />
+                    <span className="relative inline-flex w-2 h-2 rounded-full bg-[var(--cyan)]" />
                   </span>
-                  <span className="text-label" style={{ color: 'var(--cyan)' }}>
-                    The Future of Hostel Living
-                  </span>
+                  <span className="text-xs font-medium text-[var(--cyan)] tracking-wide">Now in Beta</span>
                 </div>
               </motion.div>
 
               {/* Headline */}
-              <motion.div variants={item}>
-                <h1
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 800,
-                    fontSize: 'clamp(3rem, 6.5vw, 5.25rem)',
-                    lineHeight: 0.92,
-                    letterSpacing: '-0.04em',
-                    color: 'var(--text-primary)',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  UNISTAY
+              <motion.div variants={itemVariants}>
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-2"
+                  style={{ fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>
+                  Hostel Life
                 </h1>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 800,
-                    fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
-                    lineHeight: 0.95,
-                    letterSpacing: '-0.04em',
-                    marginBottom: '1.75rem',
-                    minHeight: '1.05em',
-                  }}
-                >
+                <div className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
+                  style={{ fontFamily: 'var(--font-display)', lineHeight: 1.1, minHeight: '1.1em' }}>
                   <Typewriter />
                 </div>
               </motion.div>
 
-              {/* Sub */}
-              <motion.p
-                variants={item}
-                className="text-body-lg mb-10"
-                style={{ color: 'var(--text-secondary)', maxWidth: 480, lineHeight: 1.65 }}
-              >
-                The most advanced hostel OS for modern universities — from instant room allocation to real-time analytics, all in one place.
+              {/* Subheadline */}
+              <motion.p variants={itemVariants} 
+                className="text-lg text-[var(--text-secondary)] max-w-lg mb-8 leading-relaxed">
+                A modern platform designed for educational institutions to streamline hostel operations, 
+                from room allocations to complaint management — all in one place.
               </motion.p>
 
-              {/* CTA row */}
-              <motion.div variants={item} className="flex flex-wrap items-center gap-4 mb-12">
+              {/* CTAs */}
+              <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
                 <Link to="/signup">
-                  <button className="btn-primary" style={{ height: '3.25rem', padding: '0 1.75rem', fontSize: '0.9375rem' }}>
+                  <button className="btn-primary group">
                     <span className="flex items-center gap-2">
-                      Get Started Free
-                      <ArrowRight size={16} strokeWidth={2.5} />
+                      Start Free Trial
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </span>
                   </button>
                 </Link>
                 <Link to="/login">
-                  <button className="btn-ghost flex items-center gap-3" style={{ height: '3.25rem' }}>
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'var(--border-subtle)', border: '1px solid var(--border-subtle)' }}
-                    >
-                      <Play size={12} fill="currentColor" style={{ marginLeft: 2 }} />
-                    </div>
-                    Watch Demo
+                  <button className="btn-ghost">
+                    Sign In to Dashboard
                   </button>
                 </Link>
               </motion.div>
-
-              {/* Trust strip */}
-              <motion.div
-                variants={item}
-                className="flex items-center gap-4 p-4 rounded-2xl w-fit"
-                style={{
-                  background: 'rgba(255,255,255,0.025)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map(n => (
-                    <img
-                      key={n}
-                      src={`https://i.pravatar.cc/80?u=${n + 30}`}
-                      alt=""
-                      className="w-9 h-9 rounded-full"
-                      style={{ border: '2.5px solid var(--bg-base)', objectFit: 'cover' }}
-                    />
-                  ))}
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black"
-                    style={{ border: '2.5px solid var(--bg-base)', background: 'var(--cyan)', color: '#fff', fontFamily: 'var(--font-display)' }}
-                  >
-                    +5k
-                  </div>
-                </div>
-                <div className="h-8 w-px" style={{ background: 'var(--border-subtle)' }} />
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
-                  Trusted by <strong style={{ color: 'var(--text-primary)' }}>10,000+ students</strong><br />
-                  across 50+ universities
-                </p>
-              </motion.div>
             </motion.div>
 
-            {/* Right — Mockup */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, ease: EASE, delay: 0.3 }}
-              className="hidden lg:block"
-              style={{ perspective: 1200 }}
-            >
-              <DashboardMockup />
-            </motion.div>
+            {/* Right - Dashboard Preview */}
+            <div className="hidden lg:block">
+              <DashboardPreview />
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Scroll hint */}
-        <motion.div
-          style={{ opacity: heroOpacity, y: heroY }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="text-label" style={{ color: 'var(--text-muted)' }}>Scroll to explore</span>
-          <div
-            className="w-px h-10"
-            style={{ background: 'linear-gradient(to bottom, var(--cyan), transparent)' }}
-          />
+        {/* Scroll indicator */}
+        <motion.div 
+          style={{ opacity: heroOpacity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span className="text-xs text-[var(--text-muted)]">Scroll to explore</span>
+          <div className="w-px h-8 bg-gradient-to-b from-[var(--cyan)] to-transparent" />
         </motion.div>
       </section>
 
-      {/* ══ STATS ══════════════════════════════════════════ */}
-      <section className="py-24" style={{ borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+      {/* ═══ FEATURES SECTION ═══ */}
+      <section id="features" className="py-24 lg:py-32 border-t border-[var(--border-subtle)]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={Users}    value="10"   suffix="k+" label="Active Users"        delay={100} color="var(--cyan)"   />
-            <StatCard icon={Globe}    value="50"   suffix="+"  label="Partner Universities" delay={200} color="var(--purple)" />
-            <StatCard icon={Activity} value="99.9" suffix="%"  label="Server Uptime"        delay={300} color="#00D4A0"       />
-            <StatCard icon={Star}     value="4.9"  suffix="/5" label="Student Rating"       delay={400} color="var(--gold)"   />
-          </div>
-        </div>
-      </section>
-
-      {/* ══ FEATURES ═══════════════════════════════════════ */}
-      <section id="features" className="py-32">
-        <div className="max-w-7xl mx-auto px-6">
-
           {/* Section header */}
-          <div className="max-w-2xl mb-20">
-            <p className="text-label mb-4" style={{ color: 'var(--cyan)' }}>Platform Features</p>
-            <h2 className="text-h1 mb-5" style={{ color: 'var(--text-primary)' }}>
-              Everything you need to run a smart hostel.
-            </h2>
-            <p className="text-body-lg" style={{ color: 'var(--text-secondary)' }}>
-              Purpose-built tools that remove friction for students and administrators alike.
-            </p>
+          <div className="max-w-2xl mx-auto text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="text-xs font-semibold text-[var(--cyan)] tracking-widest uppercase mb-4 block">Features</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Everything you need
+              </h2>
+              <p className="text-[var(--text-secondary)] text-lg">
+                Built from the ground up to solve real problems faced by hostel administrators and students.
+              </p>
+            </motion.div>
           </div>
 
-          {/* Bento grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-            {/* Hero feature — spans 2 cols */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.65, ease: EASE }}
-              className="md:col-span-2 rounded-3xl p-10 relative overflow-hidden flex flex-col justify-between"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0,194,255,0.12) 0%, rgba(124,92,252,0.12) 100%)',
-                border: '1px solid var(--border-accent)',
-                minHeight: 320,
-              }}
-            >
-              <div
-                className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-20 pointer-events-none"
-                style={{ background: 'var(--cyan)', filter: 'blur(80px)', transform: 'translate(30%,-30%)' }}
-              />
-              <div className="relative z-10">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-7"
-                  style={{ background: 'rgba(0,194,255,0.15)', color: 'var(--cyan)', border: '1px solid var(--border-accent)' }}
-                >
-                  <Layers size={26} strokeWidth={1.6} />
-                </div>
-                <h3 className="text-h2 mb-3" style={{ color: 'var(--text-primary)' }}>On-Click Digital Onboarding</h3>
-                <p className="text-body" style={{ color: 'var(--text-secondary)', maxWidth: 480, lineHeight: 1.7 }}>
-                  Students upload their documents once. AI verifies instantly. Rooms are allocated before they finish unpacking. Zero paper. Zero queues.
-                </p>
-              </div>
-              <div className="relative z-10 flex gap-3 mt-8">
-                {['AI Verification', 'Instant Allocation', 'Digital ID'].map(tag => (
-                  <span
-                    key={tag}
-                    className="text-label px-4 py-1.5 rounded-full"
-                    style={{
-                      background: 'rgba(0,194,255,0.08)',
-                      border: '1px solid var(--border-accent)',
-                      color: 'var(--cyan)',
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-
-            <FeatureCard delay={0.1} icon={Zap}        title="Smart Complaints"   desc="Real-time issue tracking with automated warden notifications and escalation timers."   accent="var(--purple)" />
-            <FeatureCard delay={0.2} icon={CreditCard} title="Secure Payments"    desc="Enterprise-grade payment gateway. Fee collection, receipts, and financial history in one dashboard." accent="var(--cyan)" />
-            <FeatureCard delay={0.3} icon={Smartphone}  title="Mobile-First Core" desc="Native-level performance on every screen. Students manage everything from their pocket." accent="#00D4A0" />
-            <FeatureCard delay={0.4} icon={BarChart2}   title="Analytics Dashboard" desc="Occupancy rates, complaint trends, revenue graphs — actionable insights at a glance." accent="var(--gold)" />
+          {/* Features grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FeatureCard
+              icon={Home}
+              title="Smart Room Allocation"
+              description="Automated room assignments based on preferences, availability, and student profiles."
+              delay={0}
+              color="cyan"
+            />
+            <FeatureCard
+              icon={MessageSquare}
+              title="Complaint Management"
+              description="Students can raise issues instantly. Wardens track and resolve with full transparency."
+              delay={0.1}
+              color="purple"
+            />
+            <FeatureCard
+              icon={CreditCard}
+              title="Fee Management"
+              description="Track payments, generate receipts, and send reminders — all automated."
+              delay={0.2}
+              color="emerald"
+            />
+            <FeatureCard
+              icon={Calendar}
+              title="Leave Requests"
+              description="Digital leave applications with approval workflows and parent notifications."
+              delay={0.3}
+              color="amber"
+            />
+            <FeatureCard
+              icon={BarChart3}
+              title="Real-time Analytics"
+              description="Occupancy rates, complaint trends, and financial insights at a glance."
+              delay={0.4}
+              color="rose"
+            />
+            <FeatureCard
+              icon={Shield}
+              title="Secure & Private"
+              description="Enterprise-grade security with role-based access control for all data."
+              delay={0.5}
+              color="cyan"
+            />
           </div>
         </div>
       </section>
 
-      {/* ══ HOW IT WORKS ═══════════════════════════════════ */}
-      <section
-        className="py-32"
-        style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)' }}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-20">
-            <p className="text-label mb-4" style={{ color: 'var(--purple)' }}>How It Works</p>
-            <h2 className="text-h1 mb-5" style={{ color: 'var(--text-primary)' }}>Up and running in three steps.</h2>
-            <p className="text-body-lg" style={{ color: 'var(--text-secondary)' }}>
-              No lengthy onboarding. No IT team required. Just a modern hostel, fully digital.
-            </p>
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section className="py-24 lg:py-32 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="text-xs font-semibold text-[var(--purple)] tracking-widest uppercase mb-4 block">How It Works</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Get started in minutes
+              </h2>
+              <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
+                No complex setup. No IT team required. Just sign up and start managing.
+              </p>
+            </motion.div>
           </div>
 
           {/* Steps */}
           <div className="relative">
-            {/* Connecting line */}
-            <div
-              className="absolute top-10 left-1/6 right-1/6 h-px hidden lg:block"
-              style={{ background: 'linear-gradient(90deg, transparent, var(--border-accent), transparent)' }}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StepCard number="01" icon={Shield} title="Register Your Institution"  desc="Securely onboard your hostel and sync student records in minutes."               accent="var(--cyan)"   delay={0.0} />
-              <StepCard number="02" icon={Layout} title="Configure Rooms & Policies"  desc="Set up blocks, rooms, fee structures, and staff permissions in our unified grid."  accent="var(--purple)" delay={0.15} />
-              <StepCard number="03" icon={Globe}  title="Go Live"                     desc="Open your digital doors — students self-manage, wardens oversee, data flows freely." accent="#00D4A0"       delay={0.30} />
+            {/* Connecting line - desktop only */}
+            <div className="hidden lg:block absolute top-8 left-[16.67%] right-[16.67%] h-px 
+              bg-gradient-to-r from-transparent via-[var(--border-accent)] to-transparent" />
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <StepCard
+                number="1"
+                icon={Layout}
+                title="Create Your Account"
+                description="Sign up with your institutional email. Verification is instant and secure."
+                delay={0}
+              />
+              <StepCard
+                number="2"
+                icon={Settings}
+                title="Configure Your Hostel"
+                description="Add blocks, rooms, and set policies. Import student data via CSV."
+                delay={0.15}
+              />
+              <StepCard
+                number="3"
+                icon={Zap}
+                title="Go Live"
+                description="Share access with students. They onboard themselves. You manage effortlessly."
+                delay={0.3}
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
-      <section id="testimonials" className="py-32" style={{ overflow: 'hidden' }}>
-        <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
-          <p className="text-label mb-4" style={{ color: 'var(--gold)' }}>Testimonials</p>
-          <h2 className="text-h1" style={{ color: 'var(--text-primary)' }}>Loved by students & wardens.</h2>
-        </div>
+      {/* ═══ BENEFITS SECTION ═══ */}
+      <section className="py-24 lg:py-32 border-t border-[var(--border-subtle)]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left - Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="text-xs font-semibold text-[var(--cyan)] tracking-widest uppercase mb-4 block">Why UNISTAY</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Built for modern educational institutions
+              </h2>
+              <p className="text-[var(--text-secondary)] text-lg mb-8">
+                We understand the challenges of hostel management. That&apos;s why we built a platform 
+                that actually works for administrators, wardens, and students alike.
+              </p>
 
-        {/* Infinite marquee */}
-        <div className="relative">
-          {/* Edge fades */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-            style={{ background: 'linear-gradient(to right, var(--bg-base), transparent)' }}
-          />
-          <div
-            className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-            style={{ background: 'linear-gradient(to left, var(--bg-base), transparent)' }}
-          />
-          <div className="flex gap-5 animate-marquee pl-5" style={{ width: 'max-content' }}>
-            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-              <TestimonialCard key={i} {...t} />
-            ))}
+              <div className="space-y-4">
+                {[
+                  { icon: Clock, text: 'Save 10+ hours every week on administrative tasks' },
+                  { icon: Users, text: 'Improve student satisfaction with faster response times' },
+                  { icon: Lock, text: 'Keep data secure with bank-level encryption' },
+                  { icon: Smartphone, text: 'Access from anywhere — desktop, tablet, or mobile' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]
+                      flex items-center justify-center flex-shrink-0">
+                      <item.icon size={18} className="text-[var(--cyan)]" />
+                    </div>
+                    <p className="text-[var(--text-secondary)] pt-2">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right - Visual */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="relative"
+            >
+              <div className="relative rounded-2xl overflow-hidden border border-[var(--border-subtle)]">
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--cyan)]/10 to-[var(--purple)]/10" />
+                <div className="p-8 space-y-6">
+                  {/* Mock feature cards */}
+                  {[
+                    { icon: Bell, title: 'Instant Notifications', desc: 'Real-time alerts for complaints & requests' },
+                    { icon: Wallet, title: 'Payment Tracking', desc: 'Automated fee collection & reminders' },
+                    { icon: Award, title: 'Student Profiles', desc: 'Complete student information at a glance' },
+                  ].map((card, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]
+                      hover:border-[var(--border-accent)] transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <card.icon size={22} className="text-[var(--cyan)]" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[var(--text-primary)]">{card.title}</h4>
+                        <p className="text-sm text-[var(--text-muted)]">{card.desc}</p>
+                      </div>
+                      <ChevronRight size={18} className="ml-auto text-[var(--text-muted)]" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ══ FINAL CTA ══════════════════════════════════════ */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* ═══ TESTIMONIALS ═══ */}
+      <section id="testimonials" className="py-24 lg:py-32 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="text-xs font-semibold text-[var(--gold)] tracking-widest uppercase mb-4 block">Testimonials</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Loved by early adopters
+              </h2>
+              <p className="text-[var(--text-secondary)] text-lg">
+                Here&apos;s what the first institutions using UNISTAY have to say.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <TestimonialCard
+              quote="The complaint management system alone has saved us countless hours. Students love the transparency."
+              author="Dr. Sharma"
+              role="Hostel Warden"
+              delay={0}
+            />
+            <TestimonialCard
+              quote="Finally, a hostel management system that doesn't look like it's from 2005. Clean, fast, and intuitive."
+              author="Rahul K."
+              role="Student, Year 3"
+              delay={0.1}
+            />
+            <TestimonialCard
+              quote="Room allocations used to take days. Now it's done in minutes. The automation is incredible."
+              author="Prof. Patel"
+              role="Administration Head"
+              delay={0.2}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ PRICING SECTION ═══ */}
+      <section className="py-24 lg:py-32 border-t border-[var(--border-subtle)]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="text-xs font-semibold text-[var(--cyan)] tracking-widest uppercase mb-4 block">Pricing</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Simple, transparent pricing
+              </h2>
+              <p className="text-[var(--text-secondary)] text-lg">
+                Start free. Scale as you grow. No hidden fees.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            {/* Free Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="p-8 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)]"
+            >
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Starter</h3>
+              <p className="text-[var(--text-muted)] text-sm mb-6">Perfect for small hostels</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[var(--text-primary)]">Free</span>
+                <span className="text-[var(--text-muted)]"> forever</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {['Up to 50 students', 'Basic room management', 'Complaint tracking', 'Email support'].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+                    <CheckCircle size={16} className="text-emerald-400" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/signup">
+                <button className="w-full btn-ghost">Get Started</button>
+              </Link>
+            </motion.div>
+
+            {/* Pro Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="relative p-8 rounded-2xl bg-[var(--bg-card)] border-2 border-[var(--cyan)]/50"
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[var(--cyan)] text-xs font-semibold text-white">
+                Most Popular
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Institution</h3>
+              <p className="text-[var(--text-muted)] text-sm mb-6">For growing institutions</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[var(--text-primary)]">$29</span>
+                <span className="text-[var(--text-muted)]">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {['Unlimited students', 'Advanced analytics', 'Payment integration', 'Priority support', 'Custom branding'].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+                    <CheckCircle size={16} className="text-emerald-400" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/signup">
+                <button className="w-full btn-primary">
+                  <span>Start Free Trial</span>
+                </button>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ FINAL CTA ═══ */}
+      <section className="py-24 lg:py-32 px-6">
+        <div className="max-w-4xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 32 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: EASE }}
-            className="relative rounded-[2.5rem] p-16 md:p-24 text-center overflow-hidden"
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-            }}
+            transition={{ duration: 0.8 }}
+            className="relative rounded-3xl p-12 lg:p-16 text-center overflow-hidden"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
-            {/* Glows */}
-            <div
-              className="absolute -top-1/2 -left-1/4 w-3/4 h-full rounded-full opacity-20 pointer-events-none"
-              style={{ background: 'var(--cyan)', filter: 'blur(120px)' }}
-            />
-            <div
-              className="absolute -bottom-1/2 -right-1/4 w-3/4 h-full rounded-full opacity-15 pointer-events-none"
-              style={{ background: 'var(--purple)', filter: 'blur(120px)' }}
-            />
-
+            {/* Background glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-30"
+              style={{ background: 'radial-gradient(ellipse, var(--cyan) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+            
             <div className="relative z-10">
-              <p className="text-label mb-5" style={{ color: 'var(--cyan)' }}>Ready to upgrade?</p>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 800,
-                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                  lineHeight: 0.95,
-                  letterSpacing: '-0.04em',
-                  color: 'var(--text-primary)',
-                  marginBottom: '1.5rem',
-                }}
-              >
-                Transform your campus.<br />
-                <span className="gradient-text">Starting today.</span>
+              <span className="text-xs font-semibold text-[var(--cyan)] tracking-widest uppercase mb-4 block">Ready to transform?</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                Start your free trial today.
               </h2>
-              <p
-                className="text-body-lg mb-10 mx-auto"
-                style={{ color: 'var(--text-secondary)', maxWidth: 520 }}
-              >
-                Join thousands of students and administrators who've modernised their campus life with UNISTAY.
+              <p className="text-[var(--text-secondary)] text-lg max-w-lg mx-auto mb-8">
+                Join the institutions already using UNISTAY to modernize their hostel operations.
               </p>
 
-              {/* Split CTA — clear login vs signup */}
-              <div
-                className="inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-2 rounded-2xl mb-8"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)' }}
-              >
-                <Link to="/login">
-                  <button
-                    className="btn-ghost w-full sm:w-auto"
-                    style={{ height: '3rem', padding: '0 1.5rem', borderRadius: '0.875rem', borderColor: 'transparent' }}
-                  >
-                    Already a member? Log In
-                  </button>
-                </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/signup">
-                  <button
-                    className="btn-primary w-full sm:w-auto"
-                    style={{ height: '3rem', padding: '0 1.75rem', borderRadius: '0.875rem', fontSize: '0.9375rem' }}
-                  >
+                  <button className="btn-primary group">
                     <span className="flex items-center gap-2">
                       Create Free Account
-                      <ArrowRight size={16} strokeWidth={2.5} />
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </span>
+                  </button>
+                </Link>
+                <Link to="/login">
+                  <button className="btn-ghost">
+                    Already have an account? Sign In
                   </button>
                 </Link>
               </div>
 
-              <p className="text-label" style={{ color: 'var(--text-muted)' }}>
-                No credit card required · Cancel anytime · GDPR compliant
+              <p className="text-xs text-[var(--text-muted)] mt-6">
+                30-day free trial • No credit card required • Cancel anytime
               </p>
             </div>
           </motion.div>

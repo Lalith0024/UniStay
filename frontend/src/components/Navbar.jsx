@@ -139,8 +139,8 @@ const Navbar = () => {
           </Link>
 
           <Link to="/signup">
-            <button className="btn-primary" style={{ height: '2.5rem', padding: '0 1.25rem', fontSize: '0.875rem' }}>
-              <span>Get Started</span>
+            <button className="btn-primary" style={{ height: '2.25rem', padding: '0 1rem', fontSize: '0.8125rem' }}>
+              Get Started
             </button>
           </Link>
         </div>
@@ -200,13 +200,13 @@ const Navbar = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <Link to="/login" onClick={() => setMobileOpen(false)}>
-                <button className="btn-ghost w-full" style={{ height: '2.75rem' }}>
+                <button className="btn-ghost w-full" style={{ height: '2.5rem' }}>
                   Log In
                 </button>
               </Link>
               <Link to="/signup" onClick={() => setMobileOpen(false)}>
-                <button className="btn-primary w-full" style={{ height: '2.75rem' }}>
-                  <span>Get Started</span>
+                <button className="btn-primary w-full" style={{ height: '2.5rem' }}>
+                  Get Started
                 </button>
               </Link>
             </div>

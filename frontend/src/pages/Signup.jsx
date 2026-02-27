@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Input from '../components/Input';
-import Button from '../components/Button';
 import { config } from '../config';
 import campusImage from '../assets/image.png';
 
@@ -96,11 +95,11 @@ const Signup = () => {
           className="w-full max-w-lg"
         >
           <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-primary-500" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)]" />
 
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
-              <p className="text-slate-500 dark:text-slate-400">Join UNISTAY for a smarter hostel life</p>
+              <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Create Account</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Join UNISTAY for a smarter hostel life</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -114,8 +113,8 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('student')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
-                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
-                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      ? 'bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)] text-white shadow-lg'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -125,8 +124,8 @@ const Signup = () => {
                     type="button"
                     onClick={() => handleRoleChange('admin')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
-                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
-                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600'
+                      ? 'bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)] text-white shadow-lg'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -180,18 +179,33 @@ const Signup = () => {
                 />
               </div>
 
-              <Button
+              <button
                 type="submit"
-                variant="primary"
-                isLoading={loading}
-                className="w-full shadow-xl shadow-primary-500/20 mt-6"
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200
+                  bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)]
+                  hover:opacity-90 hover:shadow-lg hover:shadow-[var(--cyan)]/25
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center justify-center gap-2 mt-6"
               >
-                Create Account <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating account...
+                  </>
+                ) : (
+                  <>
+                    Create Account <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
 
               <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4">
                 Already have an account?{' '}
-                <Link to="/login" className="text-primary-500 font-semibold hover:text-primary-600 transition-colors">
+                <Link to="/login" className="font-semibold text-[var(--cyan)] hover:opacity-80 transition-colors">
                   Sign In
                 </Link>
               </p>
