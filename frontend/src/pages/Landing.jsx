@@ -3,12 +3,16 @@ import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'fra
 import {
   ArrowRight, Shield, Zap, Smartphone, CheckCircle, Users,
   CreditCard, BarChart3, Layout, Bell, ChevronRight,
-  Sparkles, Lock, Clock, FileText, Home, MessageSquare,
+  Sparkles, Star, Lock, Clock, FileText, Home, MessageSquare,
   Calendar, Wallet, Settings, TrendingUp, Award
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import DashboardPreview from '../components/landing/DashboardPreview';
+import FeatureCard from '../components/landing/FeatureCard';
+import StepCard from '../components/landing/StepCard';
+import LandingTestimonialCard from '../components/landing/LandingTestimonialCard';
 
 /* ─── Easing Curves ─────────────────────────────────────── */
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
@@ -63,242 +67,7 @@ const Typewriter = () => {
   );
 };
 
-/* ─── Feature Card Component ────────────────────────────── */
-const FeatureCard = ({ icon: Icon, title, description, delay = 0, color = "cyan" }) => {
-  const colorMap = {
-    cyan: 'from-cyan-500/20 to-blue-500/20 text-cyan-400 border-cyan-500/30',
-    purple: 'from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30',
-    emerald: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30',
-    amber: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30',
-    rose: 'from-rose-500/20 to-red-500/20 text-rose-400 border-rose-500/30',
-  };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, ease: EASE_OUT_EXPO, delay }}
-      className="group relative"
-    >
-      <div className={`relative overflow-hidden rounded-2xl p-6 h-full transition-all duration-500
-        bg-[var(--bg-card)] border border-[var(--border-subtle)] 
-        hover:border-[var(--border-accent)] hover:shadow-2xl hover:shadow-${color}-500/10
-        hover:-translate-y-1`}
-      >
-        {/* Glow effect */}
-        <div className={`absolute -inset-px rounded-2xl bg-gradient-to-br ${colorMap[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`} />
-        
-        <div className="relative z-10">
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} border ${colorMap[color].split(' ')[3]} 
-            flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}>
-            <Icon size={22} strokeWidth={1.8} />
-          </div>
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 tracking-tight">{title}</h3>
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-/* ─── Step Card Component ───────────────────────────────── */
-const StepCard = ({ number, icon: Icon, title, description, delay = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.6, ease: EASE_OUT_EXPO, delay }}
-    className="relative text-center"
-  >
-    <div className="relative inline-flex mb-6">
-      <div className="w-16 h-16 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]
-        flex items-center justify-center text-[var(--cyan)] transition-all duration-300 hover:scale-105 hover:border-[var(--border-accent)]">
-        <Icon size={28} strokeWidth={1.5} />
-      </div>
-      <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[var(--bg-card)] border-2 border-[var(--border-subtle)]
-        flex items-center justify-center text-xs font-bold text-[var(--cyan)]">
-        {number}
-      </div>
-    </div>
-    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
-    <p className="text-sm text-[var(--text-secondary)] max-w-[260px] mx-auto leading-relaxed">{description}</p>
-  </motion.div>
-);
-
-/* ─── Testimonial Card ──────────────────────────────────── */
-const TestimonialCard = ({ quote, author, role, delay = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, ease: EASE_OUT_EXPO, delay }}
-    className="group relative"
-  >
-    <div className="relative p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)]
-      hover:border-[var(--border-accent)] transition-all duration-300">
-      <div className="flex gap-1 mb-4">
-        {[...Array(5)].map((_, i) => (
-          <Sparkles key={i} size={14} className="text-amber-400 fill-amber-400/30" />
-        ))}
-      </div>
-      <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">&ldquo;{quote}&rdquo;</p>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--purple)] flex items-center justify-center text-white font-semibold text-sm">
-          {author[0]}
-        </div>
-        <div>
-          <p className="text-sm font-medium text-[var(--text-primary)]">{author}</p>
-          <p className="text-xs text-[var(--text-muted)]">{role}</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
-
-/* ─── Dashboard Preview Component ───────────────────────── */
-const DashboardPreview = () => {
-  return (
-    <div className="relative w-full max-w-4xl mx-auto">
-      {/* Ambient glow */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 
-        rounded-3xl blur-3xl opacity-50" />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 1, ease: EASE_OUT_EXPO, delay: 0.3 }}
-        className="relative rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl"
-        style={{ background: 'var(--bg-card)' }}
-      >
-        {/* Browser chrome */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400/80" />
-            <div className="w-3 h-3 rounded-full bg-amber-400/80" />
-            <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
-          </div>
-          <div className="ml-4 flex-1 max-w-md">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)]">
-              <Lock size={12} className="text-[var(--text-muted)]" />
-              <span className="text-xs text-[var(--text-muted)]">unistay.app/dashboard</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard content */}
-        <div className="p-6 space-y-4">
-          {/* Header row */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dashboard Overview</h4>
-              <p className="text-xs text-[var(--text-muted)]">Welcome back, Admin</p>
-            </div>
-            <div className="flex gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center">
-                <Bell size={14} className="text-[var(--text-secondary)]" />
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--cyan)] to-[var(--purple)]" />
-            </div>
-          </div>
-
-          {/* Stats grid */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Total Students', value: '248', icon: Users, color: 'text-cyan-400' },
-              { label: 'Active Rooms', value: '156', icon: Home, color: 'text-purple-400' },
-              { label: 'Pending Requests', value: '12', icon: Clock, color: 'text-amber-400' },
-            ].map((stat, i) => (
-              <div key={i} className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <stat.icon size={14} className={stat.color} />
-                  <span className="text-xs text-[var(--text-muted)]">{stat.label}</span>
-                </div>
-                <p className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Chart area */}
-          <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-medium text-[var(--text-primary)]">Occupancy Rate</span>
-              <div className="flex items-center gap-1 text-emerald-400 text-xs">
-                <TrendingUp size={12} />
-                <span>+12%</span>
-              </div>
-            </div>
-            <div className="flex items-end gap-2 h-24">
-              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 75, 50, 88].map((h, i) => (
-                <div key={i} className="flex-1 rounded-t-sm bg-gradient-to-t from-[var(--cyan)]/60 to-[var(--purple)]/60"
-                  style={{ height: `${h}%`, opacity: 0.3 + (h / 200) }} />
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-[10px] text-[var(--text-muted)]">
-              <span>Jan</span><span>Mar</span><span>Jun</span><span>Sep</span><span>Dec</span>
-            </div>
-          </div>
-
-          {/* Recent activity */}
-          <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-            <span className="text-sm font-medium text-[var(--text-primary)]">Recent Activity</span>
-            <div className="mt-3 space-y-2">
-              {[
-                { text: 'New complaint filed', time: '2 min ago', icon: MessageSquare },
-                { text: 'Room allocation updated', time: '15 min ago', icon: Home },
-                { text: 'Payment received', time: '1 hour ago', icon: CreditCard },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-xs">
-                  <div className="w-6 h-6 rounded-lg bg-[var(--bg-card)] flex items-center justify-center">
-                    <item.icon size={12} className="text-[var(--text-secondary)]" />
-                  </div>
-                  <span className="text-[var(--text-secondary)] flex-1">{item.text}</span>
-                  <span className="text-[var(--text-muted)]">{item.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Floating notification */}
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -left-8 top-1/4 hidden lg:block"
-      >
-        <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-xl
-          backdrop-blur-xl flex items-center gap-3 min-w-[200px]">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-            <CheckCircle size={18} className="text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-[var(--text-primary)]">Payment Confirmed</p>
-            <p className="text-[10px] text-[var(--text-muted)]">Room 302 - Semester Fee</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Floating notification 2 */}
-      <motion.div
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute -right-8 bottom-1/3 hidden lg:block"
-      >
-        <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-xl
-          backdrop-blur-xl flex items-center gap-3 min-w-[200px]">
-          <div className="w-10 h-10 rounded-lg bg-[var(--cyan-glow)] flex items-center justify-center">
-            <FileText size={18} className="text-[var(--cyan)]" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-[var(--text-primary)]">Leave Approved</p>
-            <p className="text-[10px] text-[var(--text-muted)]">Student ID: ST-2847</p>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 
 /* ─── Main Landing Page ─────────────────────────────────── */
 const Landing = () => {
@@ -361,9 +130,9 @@ const Landing = () => {
               </motion.div>
 
               {/* Subheadline */}
-              <motion.p variants={itemVariants} 
+              <motion.p variants={itemVariants}
                 className="text-lg text-[var(--text-secondary)] max-w-lg mb-8 leading-relaxed">
-                A modern platform designed for educational institutions to streamline hostel operations, 
+                A modern platform designed for educational institutions to streamline hostel operations,
                 from room allocations to complaint management — all in one place.
               </motion.p>
 
@@ -393,7 +162,7 @@ const Landing = () => {
         </motion.div>
 
         {/* Scroll indicator */}
-        <motion.div 
+        <motion.div
           style={{ opacity: heroOpacity }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <span className="text-xs text-[var(--text-muted)]">Scroll to explore</span>
@@ -496,7 +265,7 @@ const Landing = () => {
             {/* Connecting line - desktop only */}
             <div className="hidden lg:block absolute top-8 left-[16.67%] right-[16.67%] h-px 
               bg-gradient-to-r from-transparent via-[var(--border-accent)] to-transparent" />
-            
+
             <div className="grid md:grid-cols-3 gap-8">
               <StepCard
                 number="1"
@@ -541,7 +310,7 @@ const Landing = () => {
                 Built for modern educational institutions
               </h2>
               <p className="text-[var(--text-secondary)] text-lg mb-8">
-                We understand the challenges of hostel management. That&apos;s why we built a platform 
+                We understand the challenges of hostel management. That&apos;s why we built a platform
                 that actually works for administrators, wardens, and students alike.
               </p>
 
@@ -619,25 +388,42 @@ const Landing = () => {
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <TestimonialCard
-              quote="The complaint management system alone has saved us countless hours. Students love the transparency."
-              author="Dr. Sharma"
-              role="Hostel Warden"
-              delay={0}
-            />
-            <TestimonialCard
-              quote="Finally, a hostel management system that doesn't look like it's from 2005. Clean, fast, and intuitive."
-              author="Rahul K."
-              role="Student, Year 3"
-              delay={0.1}
-            />
-            <TestimonialCard
-              quote="Room allocations used to take days. Now it's done in minutes. The automation is incredible."
-              author="Prof. Patel"
-              role="Administration Head"
-              delay={0.2}
-            />
+          {/* Testimonials Marquee */}
+          <div className="relative overflow-hidden w-full">
+            <div className="flex animate-marquee whitespace-nowrap gap-6 w-max py-4">
+              {[...Array(2)].map((_, listIdx) => (
+                <div key={listIdx} className="flex gap-6">
+                  <LandingTestimonialCard
+                    quote="The complaint management system alone has saved us countless hours. Students love the transparency."
+                    author="Dr. Sharma"
+                    role="Hostel Warden"
+                  />
+                  <LandingTestimonialCard
+                    quote="Finally, a hostel management system that doesn't look like it's from 2005. Clean, fast, and intuitive."
+                    author="Rahul K."
+                    role="Student, Year 3"
+                  />
+                  <LandingTestimonialCard
+                    quote="Room allocations used to take days. Now it's done in minutes. The automation is incredible."
+                    author="Prof. Patel"
+                    role="Administration Head"
+                  />
+                  <LandingTestimonialCard
+                    quote="Managing parent communications and leave requests is so much more organized now."
+                    author="Ms. Ananya"
+                    role="Warden, Block B"
+                  />
+                  <LandingTestimonialCard
+                    quote="The analytics dashboard provides great insights into hostel occupancy and fee collections."
+                    author="Mr. Vikram"
+                    role="Hostel Director"
+                  />
+                </div>
+              ))}
+            </div>
+            {/* Gradient overlays for smooth fading at edges */}
+            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[var(--bg-surface)] to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[var(--bg-surface)] to-transparent pointer-events-none z-10" />
           </div>
         </div>
       </section>
@@ -724,54 +510,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ═══ FINAL CTA ═══ */}
-      <section className="py-24 lg:py-32 px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative rounded-3xl p-12 lg:p-16 text-center overflow-hidden"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
-          >
-            {/* Background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-30"
-              style={{ background: 'radial-gradient(ellipse, var(--cyan) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-            
-            <div className="relative z-10">
-              <span className="text-xs font-semibold text-[var(--cyan)] tracking-widest uppercase mb-4 block">Ready to transform?</span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
-                style={{ fontFamily: 'var(--font-display)' }}>
-                Start your free trial today.
-              </h2>
-              <p className="text-[var(--text-secondary)] text-lg max-w-lg mx-auto mb-8">
-                Join the institutions already using UNISTAY to modernize their hostel operations.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/signup">
-                  <button className="btn-primary group">
-                    <span className="flex items-center gap-2">
-                      Create Free Account
-                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </button>
-                </Link>
-                <Link to="/login">
-                  <button className="btn-ghost">
-                    Already have an account? Sign In
-                  </button>
-                </Link>
-              </div>
-
-              <p className="text-xs text-[var(--text-muted)] mt-6">
-                30-day free trial • No credit card required • Cancel anytime
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* ═══ FOOTER ═══ */}
 
       <Footer />
     </div>

@@ -33,9 +33,9 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Github, href: '#', label: 'GitHub' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+    { icon: Twitter, href: 'https://www.linkedin.com/in/lalithendra-kasula-1b90b7323/', label: 'Twitter' },
+    { icon: Github, href: 'https://github.com/Lalith0024', label: 'GitHub' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/in/lalithendra-kasula-1b90b7323/', label: 'LinkedIn' },
   ];
 
   return (
@@ -60,10 +60,10 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm text-[var(--text-secondary)] max-w-xs mb-6 leading-relaxed">
-              Modern hostel management for educational institutions. Streamline operations, 
+              Modern hostel management for educational institutions. Streamline operations,
               enhance student experience.
             </p>
-            
+
             {/* Social links */}
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
@@ -138,7 +138,7 @@ const Footer = () => {
           <p className="text-xs text-[var(--text-muted)]">
             {currentYear} UNISTAY. All rights reserved.
           </p>
-          
+
           {/* Status indicator */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
             <span className="relative flex w-2 h-2">
