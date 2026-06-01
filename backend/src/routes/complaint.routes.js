@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Complaint, Student } = require('../models');
-const apiHandler = require('../utils/apiHandler');
-const ensureAuthenticated = require('../middleware/auth');
+const apiHandler = require('../utils/api-handler.util');
+const ensureAuthenticated = require('../middlewares/auth.middleware');
 
 // fetching the complaints - with authentication
 router.get('/', ensureAuthenticated, async (req, res) => {

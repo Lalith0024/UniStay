@@ -5,7 +5,7 @@ const { Student, Room, Complaint, Leave, Notice } = require('../models');
 // Seed Data Endpoint
 router.post('/', async (req, res) => {
   try {
-    const User = require('../models/user');
+    const User = require('../models/user.model');
     const bcrypt = require('bcrypt');
 
     // Clear existing data to avoid duplicates on re-seed

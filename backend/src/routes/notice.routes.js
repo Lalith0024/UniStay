@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Notice } = require('../models');
-const apiHandler = require('../utils/apiHandler');
-const ensureAuthenticated = require('../middleware/auth');
+const apiHandler = require('../utils/api-handler.util');
+const ensureAuthenticated = require('../middlewares/auth.middleware');
 
 // fetching the notices 
 router.get('/', ensureAuthenticated, (req, res) => apiHandler(Notice, req, res, ['title', 'description']));

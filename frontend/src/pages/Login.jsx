@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
-import Input from '../components/Input';
+import Navbar from '../components/layout/Navbar';
+import Input from '../components/ui/Input';
 import { config } from '../config';
 import campusImage from '../assets/image.png';
 
@@ -69,6 +69,48 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const handleDemoLogin = async (role) => {
+    setLoading(true);
+    try {
+      const email = role === 'admin' ? 'admin@test.com' : 'rahul@test.com';
+      const password = '123456';
+
+      const payload = { email, password };
+      const res = await axios.post(`${config.API_URL}/auth/login`, payload);
+
+      const token = res.data?.token;
+      const user = res.data?.user;
+
+      if (token && user) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Also enable tour for demo logins so they can experience the onboarding flow
+        localStorage.setItem('unistay_first_signup', 'true');
+
+        toast.success(`Demo ${role === 'admin' ? 'Admin' : 'Student'} Login Successful!`);
+
+        const resolvedRole = user.role || role;
+
+        if (resolvedRole === 'admin' || resolvedRole === 'warden') {
+          navigate('/admin/dashboard', { replace: true });
+        } else {
+          if (!user.room) {
+            navigate('/onboarding', { replace: true });
+          } else {
+            navigate('/dashboard', { replace: true });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Demo login error:', err);
+      toast.error('Demo login failed. Please refresh the page or try manual signup / login.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden">
@@ -191,6 +233,45 @@ const Login = () => {
                   Create Account
                 </Link>
               </p>
+
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200/20 dark:border-slate-800/20" />
+                </div>
+                <span className="relative px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-[#0a0a0c]/80 backdrop-blur-md rounded-full border border-slate-200/10 py-0.5 px-2">
+                  Quick View
+                </span>
+              </div>
+
+              {/* Demo Buttons */}
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('student')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold
+                    bg-gradient-to-r from-cyan-500/10 to-blue-500/10 hover:from-cyan-500/20 hover:to-blue-500/20
+                    text-[var(--cyan)] border border-cyan-500/20 dark:border-cyan-500/10 hover:border-cyan-500/40
+                    transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Demo Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('admin')}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold
+                    bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20
+                    text-[var(--purple)] border border-purple-500/20 dark:border-purple-500/10 hover:border-purple-500/40
+                    transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Demo Admin
+                </button>
+              </div>
+
             </form>
           </div>
         </motion.div>

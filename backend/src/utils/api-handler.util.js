@@ -43,8 +43,8 @@ const apiHandler = async (Model, req, res, searchFields = []) => {
 
     // Manual Population for Complaint and Leave models
     if (Model.modelName === 'Complaint' || Model.modelName === 'Leave') {
-      const User = require('../models/user');
-      const Student = require('../models/Student');
+      const User = require('../models/user.model');
+      const Student = require('../models/student.model');
 
       // 1. Collect all unique IDs
       const allIds = [...new Set(docs.map(doc => doc.studentId).filter(id => id))];

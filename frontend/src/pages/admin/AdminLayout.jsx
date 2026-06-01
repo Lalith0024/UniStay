@@ -9,17 +9,20 @@ import {
   Bell,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  HelpCircle
 } from "lucide-react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
+import { OnboardingModal } from "../../components/ui/OnboardingModal";
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'New Complaint', message: 'WiFi issue in Room 101', time: '5m ago', read: false },
@@ -30,6 +33,10 @@ export default function AdminLayout() {
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     setUser(userData);
+    
+    if (localStorage.getItem('unistay_first_signup') === 'true') {
+      setShowTour(true);
+    }
   }, []);
 
   const links = [
@@ -173,10 +180,20 @@ export default function AdminLayout() {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-all shadow-sm hover:shadow-md"
+            className="p-2.5 rounded-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-all shadow-sm hover:shadow-md cursor-pointer"
             aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+          </button>
+
+          {/* Help / Tour Retrigger */}
+          <button
+            onClick={() => setShowTour(true)}
+            className="p-2.5 rounded-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-500 dark:text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-all shadow-sm hover:shadow-md cursor-pointer"
+            title="Show Admin Tour"
+            aria-label="Show Admin Tour"
+          >
+            <HelpCircle size={20} />
           </button>
 
           {/* Logout Button */}
@@ -192,6 +209,7 @@ export default function AdminLayout() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 dark:bg-neutral-900">
           <Outlet />
         </div>
+        <OnboardingModal show={showTour} onClose={() => setShowTour(false)} userRole="admin" />
       </div>
     </div>
   );

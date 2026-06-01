@@ -24,8 +24,8 @@ import StudentNotices from "./pages/student/Notices.jsx";
 import StudentPayments from "./pages/student/Payments.jsx";
 import StudentOnboarding from "./pages/student/Onboarding.jsx";
 
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import PublicRoute from "./components/PublicRoute.jsx";
+import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
+import PublicRoute from "./components/routing/PublicRoute.jsx";
 
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext.jsx";

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Student, Room } = require('../models');
-const apiHandler = require('../utils/apiHandler');
-const ensureAuthenticated = require('../middleware/auth');
+const apiHandler = require('../utils/api-handler.util');
+const ensureAuthenticated = require('../middlewares/auth.middleware');
 
 // GET Students 
 router.get('/', ensureAuthenticated, (req, res) => apiHandler(Student, req, res, ['name', 'room', 'email']));
@@ -63,7 +63,7 @@ router.post('/', ensureAuthenticated, async (req, res) => {
     const student = await Student.create(req.body);
 
     // Also create User account for auth if it doesn't exist
-    const User = require('../models/user');
+    const User = require('../models/user.model');
     const bcrypt = require('bcrypt');
     const existingUser = await User.findOne({ email: student.email });
 

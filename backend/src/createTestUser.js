@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
-const userModel = require('./models/user');
-const Student = require('./models/Student');
+const userModel = require('./models/user.model');
+const Student = require('./models/student.model');
 
 const createTestUser = async () => {
   try {

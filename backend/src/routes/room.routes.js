@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Room } = require('../models');
-const apiHandler = require('../utils/apiHandler');
-const ensureAuthenticated = require('../middleware/auth');
+const apiHandler = require('../utils/api-handler.util');
+const ensureAuthenticated = require('../middlewares/auth.middleware');
 
 // GET Rooms 
 router.get('/', ensureAuthenticated, (req, res) => apiHandler(Room, req, res, ['number', 'block']));
