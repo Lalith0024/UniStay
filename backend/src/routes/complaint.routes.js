@@ -28,7 +28,10 @@ router.get('/', ensureAuthenticated, async (req, res) => {
 // creating a new complaint - with authentication
 router.post('/', ensureAuthenticated, async (req, res) => {
   try {
-    const complaint = new Complaint(req.body);
+    const complaint = new Complaint({
+      ...req.body,
+      history: [{ status: req.body.status || 'Pending', adminResponse: 'Complaint created' }]
+    });
     await complaint.save();
     res.status(201).json({ success: true, data: complaint });
   } catch (error) {
@@ -39,10 +42,13 @@ router.post('/', ensureAuthenticated, async (req, res) => {
 // updating the complaint status - with authentication
 router.patch('/:id', ensureAuthenticated, async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, adminResponse } = req.body;
     const complaint = await Complaint.findByIdAndUpdate(
       req.params.id,
-      { status },
+      { 
+        status,
+        $push: { history: { status, adminResponse: adminResponse || `Status updated to ${status}` } }
+      },
       { new: true }
     );
     res.json(complaint);
