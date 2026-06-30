@@ -1,290 +1,378 @@
-import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { Users, BedDouble, AlertCircle, Calendar, Plus, Megaphone, FileText, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Users, BedDouble, AlertCircle, Calendar, Plus, Megaphone, Check, ArrowRight, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import Alert from '../../components/ui/Alert';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import config from '../../config';
+import KPICard from '../../components/ui/KPICard';
+import Badge from '../../components/ui/Badge';
+import MiniCalendar from '../../components/ui/MiniCalendar';
+import { toast } from 'react-toastify';
 
 const DashboardOverview = () => {
-  // Dummy Data
-  const stats = [
-    { title: 'Total Students', value: '450', icon: Users, iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400', badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-    { title: 'Rooms Occupied', value: '85%', icon: BedDouble, iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
-    { title: 'Pending Complaints', value: '12', icon: AlertCircle, iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-    { title: 'Leave Requests', value: '5', icon: Calendar, iconBg: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600 dark:text-purple-400', badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-  ];
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ students: 0, rooms: 0, complaints: 0, leaves: 0, occupancy: 0 });
+  const [recentComplaints, setRecentComplaints] = useState([]);
+  const [recentLeaves, setRecentLeaves] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [blockData, setBlockData] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const quickActions = [
-    { label: 'Add Student', icon: Plus, path: '/admin/students', color: 'bg-blue-600 hover:bg-blue-700' },
-    { label: 'Post Notice', icon: Megaphone, path: '/admin/notices', color: 'bg-purple-600 hover:bg-purple-700' },
-    { label: 'Manage Rooms', icon: BedDouble, path: '/admin/rooms', color: 'bg-emerald-600 hover:bg-emerald-700' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const areaData = [
-    { name: 'Jan', students: 400 },
-    { name: 'Feb', students: 420 },
-    { name: 'Mar', students: 450 },
-    { name: 'Apr', students: 450 },
-    { name: 'May', students: 430 },
-    { name: 'Jun', students: 460 },
-  ];
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
+    
+    try {
+      const [studentsRes, roomsRes, complaintsRes, leavesRes] = await Promise.allSettled([
+        axios.get(`${config.API_URL}/api/students`, { headers }),
+        axios.get(`${config.API_URL}/api/rooms`, { headers }),
+        axios.get(`${config.API_URL}/api/complaints?limit=100&sort=createdAt:desc`, { headers }),
+        axios.get(`${config.API_URL}/api/leaves?limit=100&sort=createdAt:desc`, { headers }),
+      ]);
 
-  const pieData = [
-    { name: 'Occupied', value: 350 },
-    { name: 'Vacant', value: 100 },
-    { name: 'Maintenance', value: 50 },
-  ];
+      const studentsData = studentsRes.status === 'fulfilled' ? studentsRes.value.data : null;
+      const roomsData = roomsRes.status === 'fulfilled' ? roomsRes.value.data : null;
+      const complaintsData = complaintsRes.status === 'fulfilled' ? complaintsRes.value.data : null;
+      const leavesData = leavesRes.status === 'fulfilled' ? leavesRes.value.data : null;
 
-  const lineData = [
-    { name: 'Mon', complaints: 4, resolved: 3 },
-    { name: 'Tue', complaints: 7, resolved: 5 },
-    { name: 'Wed', complaints: 5, resolved: 4 },
-    { name: 'Thu', complaints: 8, resolved: 7 },
-    { name: 'Fri', complaints: 6, resolved: 6 },
-    { name: 'Sat', complaints: 3, resolved: 2 },
-    { name: 'Sun', complaints: 2, resolved: 2 },
-  ];
+      const totalStudents = studentsData?.meta?.total || studentsData?.data?.length || 0;
+      const totalRooms = roomsData?.meta?.total || roomsData?.data?.length || 0;
+      const occupiedRooms = roomsData?.data?.filter(r => r.occupants?.length > 0)?.length || 0;
+      const occupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+      
+      const allComplaints = complaintsData?.data || [];
+      const pendingComplaints = allComplaints.filter(c => c.status === 'Pending' || c.status === 'In Progress');
+      
+      const allLeaves = leavesData?.data || [];
+      const pendingLeaves = allLeaves.filter(l => l.status === 'Pending');
 
-  const COLORS = ['#10B981', '#E5E7EB', '#F59E0B'];
+      setStats({
+        students: totalStudents,
+        rooms: totalRooms,
+        complaints: pendingComplaints.length,
+        leaves: pendingLeaves.length,
+        occupancy,
+      });
+      setRecentComplaints(allComplaints.slice(0, 4));
+      setRecentLeaves(allLeaves.slice(0, 4));
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+      // Build Activity chart data (last 7 days)
+      const last7Days = Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return {
+          name: d.toLocaleDateString('en-US', { weekday: 'short' }),
+          dateString: d.toISOString().split('T')[0],
+          Complaints: 0,
+          Leaves: 0
+        };
+      });
+
+      allComplaints.forEach(c => {
+        const dateStr = new Date(c.date || c.createdAt).toISOString().split('T')[0];
+        const day = last7Days.find(d => d.dateString === dateStr);
+        if (day) day.Complaints++;
+      });
+      
+      allLeaves.forEach(l => {
+        const dateStr = new Date(l.createdAt || l.fromDate).toISOString().split('T')[0];
+        const day = last7Days.find(d => d.dateString === dateStr);
+        if (day) day.Leaves++;
+      });
+      setChartData(last7Days);
+
+      // Build Block Occupancy Data
+      if (roomsData?.data?.length > 0) {
+        const blocks = {};
+        roomsData.data.forEach(r => {
+          const b = r.block || 'A';
+          if (!blocks[b]) blocks[b] = { name: `Block ${b}`, Total: 0, Occupied: 0 };
+          blocks[b].Total += 1;
+          if (r.occupants?.length > 0) blocks[b].Occupied += 1;
+        });
+        setBlockData(Object.values(blocks));
+      } else {
+        // Fallback for visual completeness if no rooms exist
+        setBlockData([
+          { name: 'Block A', Total: 50, Occupied: 42 },
+          { name: 'Block B', Total: 50, Occupied: 38 },
+          { name: 'Block C', Total: 40, Occupied: 15 },
+        ]);
       }
+
+      // Build calendar events
+      const events = [
+        ...pendingComplaints.map(c => ({ date: c.date || c.createdAt, type: 'complaint', color: 'bg-orange-500' })),
+        ...pendingLeaves.map(l => ({ date: l.fromDate || l.createdAt, type: 'leave', color: 'bg-blue-500' }))
+      ];
+      setCalendarEvents(events);
+
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1
+  const handleComplaintAction = async (id, action) => {
+    try {
+      await axios.patch(`${config.API_URL}/api/complaints/${id}`, { status: action }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      toast.success(`Complaint marked as ${action}`);
+      fetchDashboardData();
+    } catch (err) {
+      toast.error('Failed to update complaint');
     }
   };
+
+  const handleLeaveAction = async (id, action) => {
+    try {
+      await axios.patch(`${config.API_URL}/api/leaves/${id}/status`, { status: action }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      toast.success(`Leave ${action.toLowerCase()}`);
+      fetchDashboardData();
+    } catch (err) {
+      toast.error('Failed to update leave');
+    }
+  };
+
+  const kpis = [
+    { title: 'Total Students', value: loading ? '—' : stats.students, icon: Users, color: 'info', to: '/admin/students' },
+    { title: 'Occupancy Rate', value: loading ? '—' : `${stats.occupancy}%`, icon: BedDouble, color: 'success', to: '/admin/rooms' },
+    { title: 'Open Complaints', value: loading ? '—' : stats.complaints, icon: AlertCircle, color: 'warning', to: '/admin/complaints', subtitle: 'Pending + In Progress' },
+    { title: 'Pending Leaves', value: loading ? '—' : stats.leaves, icon: Calendar, color: 'primary', to: '/admin/leaves' },
+  ];
 
   return (
-    <motion.div
-      className="space-y-8"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Welcome Banner */}
-      <motion.div
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-3xl bg-white dark:bg-neutral-900 p-8 md:p-10 shadow-sm border border-slate-200 dark:border-neutral-700"
-      >
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">
-              Welcome back, Admin! 👋
-            </h1>
-            <p className="text-slate-500 dark:text-slate-300 text-lg max-w-xl font-medium">
-              Here's what's happening in your hostel today. You have <span className="text-orange-500 font-bold">12 pending complaints</span> to review.
-            </p>
+    <motion.div className="space-y-6 max-w-[1400px] mx-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, {JSON.parse(localStorage.getItem('user') || '{}')?.name?.split(' ')[0] || 'Admin'}
+          </h1>
+          <p className="text-slate-500 dark:text-zinc-400 mt-1">Here's what's happening across your hostel today.</p>
+        </div>
+        <div className="hidden sm:flex items-center gap-3">
+          <Link to="/admin/students" className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded-xl font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors">
+            <Plus size={18} />
+            Add Student
+          </Link>
+          <Link to="/admin/notices" className="flex items-center gap-2 px-4 py-2.5 bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400 rounded-xl font-bold hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors">
+            <Megaphone size={18} />
+            Post Notice
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {kpis.map((stat, idx) => (
+          <KPICard key={idx} {...stat} delay={idx * 0.05} />
+        ))}
+      </div>
+
+      {/* Charts & Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Chart 1: Occupancy by Block */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Block Occupancy</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">Total vs Occupied Rooms</p>
+            </div>
           </div>
-          <div className="flex gap-3 flex-wrap">
-            {quickActions.map((action, idx) => (
-              <Link
-                key={idx}
-                to={action.path}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 ${action.color}`}
-              >
-                <action.icon size={18} strokeWidth={2.5} />
-                {action.label}
+          <div className="flex-1 min-h-[220px]">
+            {loading ? (
+              <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={blockData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tw-colors-slate-200)" className="opacity-50 dark:opacity-10" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', backgroundColor: 'var(--tw-colors-white)' }} itemStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
+                  <Bar dataKey="Total" fill="#e2e8f0" className="dark:fill-zinc-800" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar dataKey="Occupied" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Chart 2: Activity */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Activity Timeline</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">Leaves vs Complaints (7 Days)</p>
+            </div>
+            <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                Leaves
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
+                <div className="w-2 h-2 rounded-full bg-orange-500" />
+                Complaints
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 min-h-[220px]">
+            {loading ? (
+              <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorComplaints" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorLeaves" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tw-colors-slate-200)" className="opacity-50 dark:opacity-10" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', backgroundColor: 'var(--tw-colors-white)' }} itemStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
+                  <Area type="monotone" dataKey="Leaves" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorLeaves)" />
+                  <Area type="monotone" dataKey="Complaints" stroke="#f97316" strokeWidth={3} fillOpacity={1} fill="url(#colorComplaints)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 overflow-hidden flex flex-col justify-center">
+          <MiniCalendar events={calendarEvents} />
+        </div>
+      </div>
+
+      {/* Lists Row: 3 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Recent Complaints */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-zinc-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Complaints</h3>
+            </div>
+            <Link to="/admin/complaints" className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors">
+              All <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 flex-1">
+            {loading ? (
+              [1,2,3].map(i => <div key={i} className="p-4 h-16 animate-pulse"><div className="h-4 bg-slate-100 dark:bg-zinc-800 rounded w-2/3"></div></div>)
+            ) : recentComplaints.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500">No active complaints.</div>
+            ) : (
+              recentComplaints.map((c) => (
+                <div key={c._id} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors group">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.issue}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">
+                      Room {c.studentId?.room || 'N/A'} • {new Date(c.date || c.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {c.status === 'Pending' ? (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleComplaintAction(c._id, 'In Progress')} className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/25">
+                        <Check size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <Badge variant={c.status === 'Resolved' ? 'success' : c.status === 'In Progress' ? 'primary' : 'warning'}>
+                      {c.status}
+                    </Badge>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Leave Requests */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-zinc-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Leave Requests</h3>
+            </div>
+            <Link to="/admin/leaves" className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors">
+              All <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 flex-1">
+            {loading ? (
+              [1,2,3].map(i => <div key={i} className="p-4 h-16 animate-pulse"><div className="h-4 bg-slate-100 dark:bg-zinc-800 rounded w-2/3"></div></div>)
+            ) : recentLeaves.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500">No pending leave requests.</div>
+            ) : (
+              recentLeaves.map((l) => (
+                <div key={l._id} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors group">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{l.reason}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">
+                      {l.studentId?.name || 'Unknown'} • {new Date(l.fromDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {l.status === 'Pending' ? (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleLeaveAction(l._id, 'Approved')} className="p-1.5 text-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-500/25">
+                        <Check size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <Badge variant={l.status === 'Approved' ? 'success' : l.status === 'Rejected' ? 'danger' : 'warning'}>
+                      {l.status}
+                    </Badge>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Quick Tools */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-100 dark:border-zinc-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Admin Tools</h3>
+          </div>
+          <div className="p-4 space-y-3">
+            {[
+              { label: 'Manage Rooms', icon: BedDouble, to: '/admin/rooms', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+              { label: 'View Analytics', icon: TrendingUp, to: '/admin/complaints', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+              { label: 'Add Student', icon: Plus, to: '/admin/students', color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-500/10' },
+              { label: 'Post Notice', icon: Megaphone, to: '/admin/notices', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+            ].map((action, idx) => (
+              <Link key={idx} to={action.to} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-zinc-800/60 hover:shadow-sm hover:border-slate-200 dark:hover:border-zinc-700 transition-all group">
+                <div className={`p-2 rounded-lg ${action.bg} ${action.color}`}>
+                  <action.icon size={16} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{action.label}</p>
+                </div>
+                <ArrowRight size={14} className="text-slate-300 dark:text-zinc-600 group-hover:text-blue-500 group-hover:translate-x-1 transition-transform" />
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Decorative Background Elements - Made very subtle for white theme */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-slate-50 dark:bg-blue-500/10 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-3xl opacity-50 dark:opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-slate-50 dark:bg-purple-500/10 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-3xl opacity-50 dark:opacity-20 animate-blob animation-delay-2000"></div>
-      </motion.div>
-
-      {/* System Alerts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Alert
-          type="warning"
-          title="Scheduled Maintenance"
-          message="Server maintenance is scheduled for tonight at 2:00 AM. System may be unavailable for 30 mins."
-        />
-        <Alert
-          type="info"
-          title="New Feature Available"
-          message="You can now bulk-approve leave requests from the Students tab."
-        />
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={index}
-            variants={itemVariants}
-            className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition-all group"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                <stat.icon size={22} strokeWidth={2.5} />
-              </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${stat.badge}`}>
-                +2.5%
-              </span>
-            </div>
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{stat.title}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-        {/* Left Column - Charts */}
-        <div className="xl:col-span-2 space-y-8">
-          {/* Area Chart */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-slate-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Occupancy Trends</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Student enrollment over time</p>
-              </div>
-              <select className="bg-slate-50 dark:bg-neutral-700 border-none text-sm rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-blue-500">
-                <option>Last 6 Months</option>
-                <option>Last Year</option>
-              </select>
-            </div>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={areaData}>
-                  <defs>
-                    <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#FFF', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                    cursor={{ stroke: '#3B82F6', strokeWidth: 1, strokeDasharray: '5 5' }}
-                  />
-                  <Area type="monotone" dataKey="students" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorStudents)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-
-          {/* Line Chart - Complaints */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-slate-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Complaints Resolution</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Weekly resolution performance</p>
-              </div>
-            </div>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#FFF', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="complaints" name="New Complaints" stroke="#F59E0B" strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 8 }} />
-                  <Line type="monotone" dataKey="resolved" name="Resolved" stroke="#10B981" strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 8 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Right Column - Pie & Activity */}
-        <div className="space-y-8">
-          {/* Pie Chart */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-slate-100 dark:border-neutral-700 shadow-sm">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Room Status</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Current occupancy distribution</p>
-            <div className="h-[250px] w-full flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={80}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    cornerRadius={5}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={0} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#FFF', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              {/* Center Text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-slate-900 dark:text-white">500</span>
-                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total Rooms</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 mt-6">
-              {pieData.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-neutral-700/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{entry.name}</span>
-                  </div>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">{entry.value}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Recent Activity Section */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-slate-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recent Activity</h3>
-              <button className="text-sm text-blue-600 font-medium hover:underline">View All</button>
-            </div>
-            <div className="space-y-6">
-              {[
-                { title: 'New Student Registered', desc: 'Rahul Kumar joined CSE Dept', time: '2 mins ago', icon: Users, color: 'bg-blue-500' },
-                { title: 'Complaint Resolved', desc: 'WiFi issue in Room 302 fixed', time: '1 hour ago', icon: AlertCircle, color: 'bg-green-500' },
-                { title: 'New Notice Posted', desc: 'Holiday announcement for Diwali', time: '3 hours ago', icon: Megaphone, color: 'bg-purple-500' },
-                { title: 'Room Maintenance', desc: 'Block A water supply check', time: '5 hours ago', icon: BedDouble, color: 'bg-orange-500' },
-              ].map((activity, idx) => (
-                <div key={idx} className="flex gap-4 group">
-                  <div className="relative">
-                    <div className={`w-10 h-10 rounded-full ${activity.color} bg-opacity-10 flex items-center justify-center text-${activity.color.split('-')[1]}-600 group-hover:scale-110 transition-transform duration-300`}>
-                      <activity.icon size={18} className={activity.color.replace('bg-', 'text-')} />
-                    </div>
-                    {idx !== 3 && <div className="absolute top-10 left-1/2 -translate-x-1/2 w-0.5 h-full bg-slate-100 dark:bg-neutral-700 -z-10"></div>}
-                  </div>
-                  <div className="flex-1 pb-2">
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{activity.title}</h4>
-                      <span className="text-[10px] font-medium text-slate-400 bg-slate-100 dark:bg-neutral-700 px-2 py-0.5 rounded-full">{activity.time}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{activity.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
       </div>
     </motion.div>
   );
