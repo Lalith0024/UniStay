@@ -1,89 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  AlertCircle,
-  Plus,
-  Search,
-  Filter,
-  X,
-  Clock,
-  CheckCircle,
-  XCircle,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  ChevronDown
-} from 'lucide-react';
+import { AlertCircle, Plus, Search, Filter, X, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import PageHeader from '../../components/ui/PageHeader';
+import EmptyState from '../../components/ui/EmptyState';
+import SlideOver from '../../components/ui/SlideOver';
+import Badge from '../../components/ui/Badge';
+import PriorityBadge from '../../components/ui/PriorityBadge';
+import StatusStepper from '../../components/ui/StatusStepper';
+import Timeline from '../../components/ui/Timeline';
 import config from '../../config';
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = config.API_URL;
 
 export default function StudentComplaints() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [slideOverOpen, setSlideOverOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalComplaints, setTotalComplaints] = useState(0);
-  const limit = 10;
-
+  
   const [newComplaint, setNewComplaint] = useState({
     issue: '',
     description: '',
     priority: 'Medium'
   });
 
-
-
   useEffect(() => {
     fetchComplaints();
-  }, [currentPage, searchTerm, filterStatus, filterPriority]);
+  }, [searchTerm]);
 
   const fetchComplaints = async () => {
     try {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      let url = `${API_BASE_URL}/api/complaints?limit=100&sort=createdAt:desc&studentId=${user.studentId || user._id}`;
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
 
-      // Filter by studentId to show only this student's complaints
-      let url = `${API_BASE_URL}/api/complaints?page=${currentPage}&limit=${limit}&sort=createdAt:desc&studentId=${user.studentId || user._id}`;
-
-      if (searchTerm) {
-        url += `&search=${encodeURIComponent(searchTerm)}`;
-      }
-      if (filterStatus !== 'all') {
-        url += `&status=${filterStatus}`;
-      }
-      if (filterPriority !== 'all') {
-        url += `&priority=${filterPriority}`;
-      }
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       const data = await response.json();
-
-      if (data.data && data.data.length > 0) {
-        setComplaints(data.data);
-        setTotalPages(data.meta?.totalPages || 1);
-        setTotalComplaints(data.meta?.total || 0);
-      } else {
-        setComplaints([]);
-        setTotalPages(1);
-        setTotalComplaints(0);
-      }
+      
+      setComplaints(data.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching complaints:', error);
       setComplaints([]);
-      setTotalPages(1);
-      setTotalComplaints(0);
       setLoading(false);
     }
   };
@@ -92,439 +57,220 @@ export default function StudentComplaints() {
     e.preventDefault();
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-
       const response = await fetch(`${API_BASE_URL}/api/complaints`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          ...newComplaint,
-          studentId: user.studentId || user._id,
-          status: 'Pending'
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ ...newComplaint, studentId: user.studentId || user._id, status: 'Pending' })
       });
 
       if (response.ok) {
+        toast.success("Complaint submitted successfully.");
         setShowAddModal(false);
         setNewComplaint({ issue: '', description: '', priority: 'Medium' });
         fetchComplaints();
+      } else {
+        toast.error("Failed to submit complaint.");
       }
     } catch (error) {
       console.error('Error adding complaint:', error);
+      toast.error("An error occurred.");
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'resolved':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30';
-      case 'in progress':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30';
-      case 'pending':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30';
-      case 'rejected':
-        return 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30';
-      default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700';
-    }
+  const handleView = (complaint) => {
+    setSelectedComplaint(complaint);
+    setSlideOverOpen(true);
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high':
-        return 'text-rose-500 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30';
-      case 'medium':
-        return 'text-amber-500 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30';
-      case 'low':
-        return 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30';
-      default:
-        return 'text-slate-500 bg-slate-50 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'resolved':
-        return <CheckCircle size={16} />;
-      case 'in progress':
-        return <Clock size={16} />;
-      case 'rejected':
-        return <XCircle size={16} />;
-      default:
-        return <AlertCircle size={16} />;
-    }
-  };
+  // Group complaints for Kanban
+  const openComplaints = complaints.filter(c => c.status === 'Pending' || c.status === 'Open');
+  const inProgressComplaints = complaints.filter(c => c.status === 'In Progress');
+  const resolvedComplaints = complaints.filter(c => c.status === 'Resolved' || c.status === 'Rejected');
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">My Complaints</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage and track your maintenance requests
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-        >
-          <Plus size={20} />
-          <span>New Complaint</span>
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl p-5 border border-slate-200 dark:border-neutral-700 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-            <input
-              type="text"
-              placeholder="Search complaints..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="relative group">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-12 pr-10 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none transition-all cursor-pointer"
-            >
-              <option value="all">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-          </div>
-
-          {/* Priority Filter */}
-          <div className="relative group">
-            <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-            <select
-              value={filterPriority}
-              onChange={(e) => {
-                setFilterPriority(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-12 pr-10 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none transition-all cursor-pointer"
-            >
-              <option value="all">All Priority</option>
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-          </div>
-        </div>
-      </div>
-
-      {/* Complaints List */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-        </div>
-      ) : complaints.length === 0 ? (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-12 border border-slate-200 dark:border-neutral-700 text-center shadow-sm">
-          <div className="w-20 h-20 bg-slate-100 dark:bg-neutral-700 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle size={40} className="text-slate-400" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No complaints found</h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
-            You haven't raised any complaints yet. If you're facing any issues, please let us know.
-          </p>
+    <div className="space-y-6 max-w-7xl mx-auto h-full flex flex-col">
+      <PageHeader 
+        title="My Complaints" 
+        description="Track your maintenance requests and issues."
+        actions={
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors shadow-lg hover:shadow-primary-500/25"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
             <Plus size={20} />
-            <span>New Complaint</span>
+            <span className="hidden sm:inline">New Complaint</span>
           </button>
-        </div>
+        }
+      />
+
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+        <input
+          type="text"
+          placeholder="Search your complaints..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 shadow-sm"
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>
+      ) : complaints.length === 0 ? (
+        <EmptyState 
+          icon={AlertCircle}
+          title="No issues reported"
+          description={searchTerm ? "No complaints match your search." : "Everything looks good! Report an issue if you need maintenance."}
+          action={
+            <button onClick={() => setShowAddModal(true)} className="px-6 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors">
+              Report an Issue
+            </button>
+          }
+        />
       ) : (
-        <div className="space-y-4">
-          {complaints.map((complaint, index) => (
-            <motion.div
-              key={complaint._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-slate-200 dark:border-neutral-700 hover:shadow-lg transition-all group"
-            >
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start gap-4 mb-3">
-                    <div className={`p-3 rounded-xl ${getPriorityColor(complaint.priority)} bg-opacity-10 dark:bg-opacity-10`}>
-                      <AlertCircle size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                        {complaint.issue}
-                      </h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                        {complaint.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm pl-[60px]">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getPriorityColor(complaint.priority)} bg-opacity-10 border-opacity-20`}>
-                      {complaint.priority} Priority
-                    </span>
-                    <span className="text-slate-300 dark:text-neutral-600">•</span>
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                      <Clock size={14} />
-                      {new Date(complaint.date || complaint.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    </span>
-                  </div>
-                </div>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
+          <KanbanColumn title="Pending" icon={Clock} count={openComplaints.length} color="warning">
+            {openComplaints.map(c => <ComplaintCard key={c._id} complaint={c} onClick={() => handleView(c)} />)}
+          </KanbanColumn>
+          <KanbanColumn title="In Progress" icon={AlertCircle} count={inProgressComplaints.length} color="primary">
+            {inProgressComplaints.map(c => <ComplaintCard key={c._id} complaint={c} onClick={() => handleView(c)} />)}
+          </KanbanColumn>
+          <KanbanColumn title="Resolved" icon={CheckCircle} count={resolvedComplaints.length} color="success">
+            {resolvedComplaints.map(c => <ComplaintCard key={c._id} complaint={c} onClick={() => handleView(c)} />)}
+          </KanbanColumn>
+        </div>
+      )}
 
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-4 pl-[60px] md:pl-0">
-                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border ${getStatusColor(complaint.status)}`}>
-                    {getStatusIcon(complaint.status)}
-                    {complaint.status}
-                  </span>
-                  <button
-                    onClick={() => {
-                      setSelectedComplaint(complaint);
-                      setShowDetailModal(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-neutral-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-all"
-                  >
-                    <Eye size={16} />
-                    View Details
-                  </button>
-                </div>
+      {/* SlideOver Details */}
+      <SlideOver isOpen={slideOverOpen} onClose={() => setSlideOverOpen(false)} title="Complaint Details">
+        {selectedComplaint && (
+          <div className="space-y-8 pb-8">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800/80 pb-4">
+              <span className="text-slate-500 font-mono text-xs font-bold bg-slate-100 dark:bg-zinc-900 px-2 py-1 rounded-md">
+                #{selectedComplaint._id.slice(-6)}
+              </span>
+              <span className="text-xs text-slate-500">
+                Filed on {new Date(selectedComplaint.date || selectedComplaint.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">{selectedComplaint.issue}</h2>
+              <div className="flex gap-2 mb-6">
+                <Badge variant={selectedComplaint.status === 'Resolved' ? 'success' : selectedComplaint.status === 'Pending' ? 'warning' : selectedComplaint.status === 'In Progress' ? 'primary' : 'danger'}>
+                  {selectedComplaint.status}
+                </Badge>
+                <PriorityBadge priority={selectedComplaint.priority} />
               </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+            </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-slate-200 dark:border-neutral-700 shadow-sm">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Page {currentPage} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-600 dark:text-slate-300"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-600 dark:text-slate-300"
-            >
-              <ChevronRight size={20} />
-            </button>
+            <div>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</h4>
+              <div className="p-4 bg-slate-50 dark:bg-zinc-900/50 rounded-xl border border-slate-100 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                {selectedComplaint.description}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Progress</h4>
+              <StatusStepper 
+                steps={['Pending', 'In Progress', 'Resolved']} 
+                currentStatus={selectedComplaint.status} 
+              />
+            </div>
+
+            {selectedComplaint.history && selectedComplaint.history.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">History</h4>
+                <Timeline items={selectedComplaint.history.map((h, i) => ({
+                  title: `Status: ${h.status}`,
+                  description: h.note || 'No notes provided.',
+                  time: new Date(h.timestamp).toLocaleString(),
+                  isActive: i === 0
+                }))} />
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </SlideOver>
 
       {/* Add Complaint Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAddModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-neutral-800 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 dark:border-neutral-700"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">New Complaint</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mt-1">Submit a new maintenance request</p>
-                </div>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors text-slate-500"
-                >
-                  <X size={24} />
-                </button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 dark:border-zinc-800">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Report an Issue</h3>
+                <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 p-2 rounded-lg"><X size={20}/></button>
               </div>
-
-              <form onSubmit={handleAddComplaint} className="space-y-6">
+              <form onSubmit={handleAddComplaint} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    Issue Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newComplaint.issue}
-                    onChange={(e) => setNewComplaint({ ...newComplaint, issue: e.target.value })}
-                    placeholder="e.g., WiFi not working"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-600 bg-slate-50 dark:bg-neutral-700/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:focus:bg-neutral-700 transition-all"
-                  />
+                  <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300 mb-1">Issue Title</label>
+                  <input type="text" required value={newComplaint.issue} onChange={e => setNewComplaint({...newComplaint, issue: e.target.value})} placeholder="e.g. Broken window" className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-primary-500/20 text-slate-900 dark:text-white" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    Description <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    value={newComplaint.description}
-                    onChange={(e) => setNewComplaint({ ...newComplaint, description: e.target.value })}
-                    placeholder="Describe your issue in detail..."
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-600 bg-slate-50 dark:bg-neutral-700/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white dark:focus:bg-neutral-700 transition-all resize-none"
-                  />
+                  <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300 mb-1">Description</label>
+                  <textarea required rows={4} value={newComplaint.description} onChange={e => setNewComplaint({...newComplaint, description: e.target.value})} placeholder="Provide details..." className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-primary-500/20 text-slate-900 dark:text-white resize-none" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    Priority <span className="text-red-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['Low', 'Medium', 'High'].map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setNewComplaint({ ...newComplaint, priority: p })}
-                        className={`py-3 rounded-xl text-sm font-semibold border transition-all ${newComplaint.priority === p
-                          ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/25'
-                          : 'bg-white dark:bg-neutral-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-600'
-                          }`}
-                      >
-                        {p}
-                      </button>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300 mb-1">Priority</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['Low', 'Medium', 'High'].map(p => (
+                      <button key={p} type="button" onClick={() => setNewComplaint({...newComplaint, priority: p})} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${newComplaint.priority === p ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-800'}`}>{p}</button>
                     ))}
                   </div>
                 </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3.5 rounded-xl bg-primary-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
-                  >
-                    Submit Complaint
-                  </button>
-                </div>
+                <button type="submit" className="w-full py-3 bg-primary-500 text-white font-bold rounded-xl mt-4 hover:bg-primary-600">Submit</button>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {showDetailModal && selectedComplaint && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowDetailModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-neutral-800 rounded-3xl p-8 max-w-2xl w-full shadow-2xl border border-slate-100 dark:border-neutral-700"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Complaint Details</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mt-1">ID: #{selectedComplaint._id.slice(-6)}</p>
-                </div>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors text-slate-500"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                <div className="bg-slate-50 dark:bg-neutral-700/30 rounded-2xl p-6 border border-slate-100 dark:border-neutral-700">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Issue</label>
-                  <p className="text-xl font-bold text-slate-900 dark:text-white">
-                    {selectedComplaint.issue}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Description</label>
-                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-neutral-700/30 p-4 rounded-xl border border-slate-100 dark:border-neutral-700">
-                    {selectedComplaint.description}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Status</label>
-                    <span className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border ${getStatusColor(selectedComplaint.status)}`}>
-                      {getStatusIcon(selectedComplaint.status)}
-                      {selectedComplaint.status}
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Priority</label>
-                    <span className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border ${getPriorityColor(selectedComplaint.priority)} bg-opacity-10`}>
-                      <AlertCircle size={16} />
-                      {selectedComplaint.priority}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-neutral-700 pt-6">
-                  <Clock size={16} />
-                  <span>Submitted on {new Date(selectedComplaint.date || selectedComplaint.createdAt).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}</span>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
+  );
+}
+
+// Subcomponents for Kanban
+function KanbanColumn({ title, icon: Icon, count, children, color }) {
+  const colorMap = {
+    warning: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/20',
+    primary: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20',
+    success: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/20',
+  };
+
+  return (
+    <div className="flex flex-col bg-slate-50/50 dark:bg-zinc-950/50 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
+          <Icon size={18} className={colorMap[color].split(' ')[0]} />
+          {title}
+        </div>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${colorMap[color]}`}>{count}</span>
+      </div>
+      <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+        {children}
+        {count === 0 && <p className="text-xs text-slate-400 text-center py-4">No {title.toLowerCase()} complaints.</p>}
+      </div>
+    </div>
+  );
+}
+
+function ComplaintCard({ complaint, onClick }) {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      onClick={onClick}
+      className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm hover:shadow-md cursor-pointer group transition-all"
+    >
+      <div className="flex justify-between items-start mb-2">
+        <PriorityBadge priority={complaint.priority} />
+        <span className="text-[10px] font-mono text-slate-400">#{complaint._id.slice(-4)}</span>
+      </div>
+      <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-2 group-hover:text-primary-600 line-clamp-2">{complaint.issue}</h4>
+      <div className="flex items-center text-[10px] font-semibold text-slate-500">
+        <Clock size={12} className="mr-1"/>
+        {new Date(complaint.createdAt || complaint.date).toLocaleDateString()}
+      </div>
+    </motion.div>
   );
 }
