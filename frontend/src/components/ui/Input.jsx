@@ -58,7 +58,7 @@ const Input = ({
           <label
             htmlFor={id}
             className={clsx(
-              "absolute left-4 transition-all duration-200 pointer-events-none text-slate-500 dark:text-slate-400",
+              "absolute left-4 transition-all duration-200 pointer-events-none text-slate-500 dark:text-zinc-400",
               (isFocused || hasValue)
                 ? "text-xs top-1.5 text-primary-500 font-medium"
                 : "text-base top-3.5"
