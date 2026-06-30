@@ -1,27 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bell,
-  AlertCircle,
-  Calendar,
-  Clock,
-  TrendingUp,
-  Pin,
-  Search,
-  Filter,
-  ChevronDown,
-  X,
-  Sparkles
-} from 'lucide-react';
+import { Bell, AlertCircle, Calendar, Clock, Pin, Search, Filter, Mail, CheckCircle2, Inbox } from 'lucide-react';
 import config from '../../config';
+import PriorityBadge from '../../components/ui/PriorityBadge';
 
 export default function StudentNotices() {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedNotice, setSelectedNotice] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterPriority, setFilterPriority] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('all'); // all, urgent, pinned
   const [pinnedNotices, setPinnedNotices] = useState([]);
 
   useEffect(() => {
@@ -31,12 +20,16 @@ export default function StudentNotices() {
   const fetchNotices = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${config.API_URL}/api/notices?limit=50&sort=createdAt:desc`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${config.API_URL}/api/notices?limit=50&sort=createdAt:desc`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await response.json();
 
       if (data.data) {
-        setNotices(data.data);
-        // Get pinned from localStorage
+        const validNotices = data.data.filter(n => n.audience !== 'Staff');
+        setNotices(validNotices);
+        
         const pinned = JSON.parse(localStorage.getItem('pinnedNotices') || '[]');
         setPinnedNotices(pinned);
       }
@@ -47,7 +40,8 @@ export default function StudentNotices() {
     }
   };
 
-  const togglePin = (noticeId) => {
+  const togglePin = (noticeId, e) => {
+    if (e) e.stopPropagation();
     const newPinned = pinnedNotices.includes(noticeId)
       ? pinnedNotices.filter(id => id !== noticeId)
       : [...pinnedNotices, noticeId];
@@ -59,385 +53,219 @@ export default function StudentNotices() {
   const filteredNotices = notices.filter(notice => {
     const matchesSearch = notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notice.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority = filterPriority === 'all' || notice.priority === filterPriority;
-    return matchesSearch && matchesPriority;
+    
+    let matchesFilter = true;
+    if (activeFilter === 'urgent') matchesFilter = notice.priority === 'Urgent';
+    if (activeFilter === 'pinned') matchesFilter = pinnedNotices.includes(notice._id);
+
+    return matchesSearch && matchesFilter;
   });
 
-  const pinned = filteredNotices.filter(n => pinnedNotices.includes(n._id));
-  const recent = filteredNotices.filter(n => !pinnedNotices.includes(n._id));
   const urgentCount = notices.filter(n => n.priority === 'Urgent').length;
+  const pinnedCount = pinnedNotices.length;
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden bg-white dark:bg-neutral-800 rounded-3xl p-8 mb-8 border border-slate-200 dark:border-neutral-700 shadow-sm">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary-400/5 rounded-full blur-3xl"></div>
+    <div className="h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6 max-w-[1400px] mx-auto">
+      
+      {/* Left Sidebar - Navigation & Filters */}
+      <div className="w-full md:w-64 flex-shrink-0 flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Notice Board</h1>
+          <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">Updates & Announcements</p>
+        </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-2xl bg-white dark:bg-neutral-800 shadow-lg border border-slate-200 dark:border-neutral-700">
-              <Bell size={28} className="text-primary-500" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Notice Board
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Stay updated with the latest announcements
-              </p>
-            </div>
-          </div>
-
-          {urgentCount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mt-6 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-xl"
-            >
-              <AlertCircle size={20} className="text-red-600 dark:text-red-400" />
-              <span className="text-sm font-semibold text-red-700 dark:text-red-400">
-                {urgentCount} urgent {urgentCount === 1 ? 'notice' : 'notices'} require your attention
-              </span>
-            </motion.div>
-          )}
+        <div className="flex flex-col gap-1">
+          <FilterButton 
+            active={activeFilter === 'all'} 
+            onClick={() => setActiveFilter('all')} 
+            icon={Inbox} 
+            label="All Notices" 
+            count={notices.length} 
+          />
+          <FilterButton 
+            active={activeFilter === 'urgent'} 
+            onClick={() => setActiveFilter('urgent')} 
+            icon={AlertCircle} 
+            label="Urgent" 
+            count={urgentCount}
+            colorClass="text-red-500"
+          />
+          <FilterButton 
+            active={activeFilter === 'pinned'} 
+            onClick={() => setActiveFilter('pinned')} 
+            icon={Pin} 
+            label="Pinned" 
+            count={pinnedCount}
+            colorClass="text-amber-500"
+          />
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl p-5 mb-6 border border-slate-200 dark:border-neutral-700 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Search */}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
+      {/* Middle Column - List View */}
+      <div className="w-full md:w-[400px] flex-shrink-0 flex flex-col bg-slate-50/50 dark:bg-zinc-950/30 border border-slate-200/60 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+        
+        {/* Search Header */}
+        <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
-              placeholder="Search notices..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white"
             />
           </div>
+        </div>
 
-          {/* Priority Filter */}
-          <div className="relative group">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full pl-12 pr-10 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none transition-all cursor-pointer"
-            >
-              <option value="all">All Priorities</option>
-              <option value="Urgent">Urgent Only</option>
-              <option value="Normal">Normal Only</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-          </div>
+        {/* Notice List */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {loading ? (
+            <div className="p-6 space-y-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="animate-pulse flex flex-col gap-2">
+                  <div className="h-4 bg-slate-100 dark:bg-zinc-800 rounded w-3/4"></div>
+                  <div className="h-3 bg-slate-100 dark:bg-zinc-800 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : filteredNotices.length === 0 ? (
+            <div className="p-10 text-center flex flex-col items-center justify-center h-full text-slate-500 dark:text-zinc-500">
+              <CheckCircle2 size={32} className="mb-3 text-emerald-500 opacity-50" />
+              <p className="font-medium text-sm text-slate-900 dark:text-white">All caught up!</p>
+              <p className="text-xs mt-1">No notices found.</p>
+            </div>
+          ) : (
+            <div className="p-3 flex flex-col gap-2">
+              {filteredNotices.map(notice => {
+                const isActive = selectedNotice?._id === notice._id;
+                return (
+                <div 
+                  key={notice._id}
+                  onClick={() => setSelectedNotice(notice)}
+                  className={`p-4 rounded-xl cursor-pointer transition-all border relative overflow-hidden group ${
+                    isActive 
+                      ? 'bg-blue-50 border-blue-200 shadow-sm dark:bg-blue-500/15 dark:border-blue-500/30' 
+                      : 'bg-white border-transparent hover:border-slate-200 dark:bg-zinc-900 dark:hover:border-zinc-700/80 hover:shadow-sm'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div layoutId="active-indicator" className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-500" />
+                  )}
+                  <div className="flex justify-between items-start mb-1.5 gap-2">
+                    <h3 className={`text-sm font-bold truncate flex-1 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                      {notice.title}
+                    </h3>
+                    {notice.priority === 'Urgent' && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 mb-3 leading-relaxed">
+                    {notice.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                      {new Date(notice.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                    {pinnedNotices.includes(notice._id) && <Pin size={12} className="text-amber-500 fill-amber-500" />}
+                  </div>
+                </div>
+              )})}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Pinned Notices */}
-          {pinned.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Pin size={18} className="text-primary-500" />
-                <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Pinned Notices
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {pinned.map((notice, index) => (
-                  <NoticeCard
-                    key={notice._id}
-                    notice={notice}
-                    index={index}
-                    isPinned={true}
-                    onPin={() => togglePin(notice._id)}
-                    onView={() => {
-                      setSelectedNotice(notice);
-                      setShowDetailModal(true);
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Notices */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={18} className="text-slate-500" />
-              <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                {pinned.length > 0 ? 'Other Notices' : 'All Notices'}
-              </h2>
-            </div>
-
-            {recent.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700">
-                <div className="w-20 h-20 bg-slate-100 dark:bg-neutral-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Bell size={32} className="text-slate-400" />
+      {/* Right Column - Detail View */}
+      <div className="hidden md:flex flex-1 flex-col bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm relative">
+        {selectedNotice ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            key={selectedNotice._id}
+            className="flex-1 flex flex-col"
+          >
+            {/* Detail Header */}
+            <div className="p-8 border-b border-slate-100 dark:border-zinc-800 flex flex-col gap-6 relative">
+              
+              <div className="flex items-start justify-between">
+                <PriorityBadge priority={selectedNotice.priority} />
+                <div className="flex gap-2">
+                  <button 
+                    onClick={(e) => togglePin(selectedNotice._id, e)}
+                    className={`p-2 rounded-xl transition-all ${pinnedNotices.includes(selectedNotice._id) ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-slate-50 text-slate-400 hover:text-slate-900 dark:bg-zinc-800 dark:hover:text-white'}`}
+                  >
+                    <Pin size={18} className={pinnedNotices.includes(selectedNotice._id) ? 'fill-current' : ''} />
+                  </button>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No notices found</h3>
-                <p className="text-slate-500 dark:text-slate-400">
-                  {searchTerm || filterPriority !== 'all'
-                    ? 'Try adjusting your filters'
-                    : 'Check back later for updates'
-                  }
-                </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {recent.map((notice, index) => (
-                  <NoticeCard
-                    key={notice._id}
-                    notice={notice}
-                    index={index}
-                    isPinned={false}
-                    onPin={() => togglePin(notice._id)}
-                    onView={() => {
-                      setSelectedNotice(notice);
-                      setShowDetailModal(true);
-                    }}
-                  />
+
+              <div>
+                <h2 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
+                  {selectedNotice.title}
+                </h2>
+                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-zinc-400">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={14} />
+                    {new Date(selectedNotice.createdAt).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={14} />
+                    {new Date(selectedNotice.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detail Body */}
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
+              <div className="prose dark:prose-invert prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-bold">
+                {selectedNotice.description.split('\n').map((paragraph, idx) => (
+                  <p key={idx} className="text-sm md:text-base text-slate-700 dark:text-zinc-300">
+                    {paragraph}
+                  </p>
                 ))}
               </div>
-            )}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div className="w-20 h-20 bg-slate-50 dark:bg-zinc-800/50 rounded-full flex items-center justify-center mb-6">
+              <Mail size={32} className="text-slate-300 dark:text-zinc-600" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Select a notice to read</h3>
+            <p className="text-sm text-slate-500 dark:text-zinc-400 max-w-sm">
+              Click on any notice from the list on the left to view its full details here.
+            </p>
           </div>
-        </div>
-      )}
-
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {showDetailModal && selectedNotice && (
-          <NoticeDetailModal
-            notice={selectedNotice}
-            onClose={() => setShowDetailModal(false)}
-            isPinned={pinnedNotices.includes(selectedNotice._id)}
-            onTogglePin={() => togglePin(selectedNotice._id)}
-          />
         )}
-      </AnimatePresence>
+      </div>
+
     </div>
   );
 }
 
-// Notice Card Component
-function NoticeCard({ notice, index, isPinned, onPin, onView }) {
-  const isUrgent = notice.priority === 'Urgent';
-  const formattedDate = new Date(notice.createdAt || notice.date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-  const timeAgo = getTimeAgo(new Date(notice.createdAt || notice.date));
-
+function FilterButton({ active, onClick, icon: Icon, label, count, colorClass = "" }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className={`group relative bg-white dark:bg-neutral-800 rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:shadow-xl hover:-translate-y-1 ${isUrgent
-        ? 'border-red-200 dark:border-red-900/40 hover:border-red-300 dark:hover:border-red-800/50'
-        : 'border-slate-200 dark:border-neutral-700 hover:border-primary-200 dark:hover:border-primary-800/50'
-        }`}
-      onClick={onView}
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-between w-full p-3 rounded-xl transition-all ${
+        active 
+          ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-bold' 
+          : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium'
+      }`}
     >
-      {/* Decorative Elements */}
-      <div className={`absolute top-0 right-0 w-32 h-32 rounded-bl-full transition-opacity opacity-0 group-hover:opacity-100 ${isUrgent
-        ? 'bg-red-500/10'
-        : 'bg-primary-500/10'
-        }`} />
-
-      {/* Pin Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onPin();
-        }}
-        className={`absolute top-4 right-4 p-2 rounded-lg transition-all z-10 ${isPinned
-          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-          : 'bg-slate-100 dark:bg-neutral-700 text-slate-400 hover:text-primary-500'
-          }`}
-      >
-        <Pin size={16} className={isPinned ? 'fill-current' : ''} />
-      </button>
-
-      {/* Priority Badge */}
-      {isUrgent && (
-        <div className="absolute -top-2 -left-2">
-          <div className="relative">
-            <div className="absolute inset-0 bg-red-500 rounded-full blur-md opacity-50 animate-pulse"></div>
-            <div className="relative px-3 py-1 bg-red-500 text-white text-xs font-bold uppercase tracking-wider rounded-full border-2 border-white dark:border-neutral-800 flex items-center gap-1">
-              <Sparkles size={12} />
-              Urgent
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="relative z-10 mt-4">
-        {/* Icon */}
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isUrgent
-          ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-          : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-          }`}>
-          <Bell size={24} />
-        </div>
-
-        {/* Title */}
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 pr-8 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {notice.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">
-          {notice.description}
-        </p>
-
-        {/* Meta Info */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-700">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Calendar size={14} />
-            <span>{formattedDate}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-            <Clock size={14} />
-            {timeAgo}
-          </div>
-        </div>
+      <div className="flex items-center gap-3">
+        <Icon size={18} className={active ? '' : colorClass} />
+        <span className="text-sm">{label}</span>
       </div>
-    </motion.div>
+      {count > 0 && (
+        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+          active 
+            ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' 
+            : 'bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400'
+        }`}>
+          {count}
+        </span>
+      )}
+    </button>
   );
-}
-
-// Detail Modal Component
-function NoticeDetailModal({ notice, onClose, isPinned, onTogglePin }) {
-  const isUrgent = notice.priority === 'Urgent';
-  const formattedDate = new Date(notice.createdAt || notice.date).toLocaleString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-neutral-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 dark:border-neutral-700"
-      >
-        {/* Header */}
-        <div className={`relative p-8 border-b border-slate-100 dark:border-neutral-700 ${isUrgent
-          ? 'bg-red-50/50 dark:bg-red-900/10'
-          : 'bg-primary-50/50 dark:bg-primary-900/10'
-          }`}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <div className={`p-4 rounded-2xl shadow-lg bg-primary-500 text-white ${isUrgent ? 'bg-red-500' : ''}`}>
-                <Bell size={28} />
-              </div>
-              <div className="flex-1">
-                {isUrgent && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full mb-3">
-                    <Sparkles size={12} />
-                    Urgent
-                  </span>
-                )}
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                  {notice.title}
-                </h2>
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                  <Calendar size={16} />
-                  <span>{formattedDate}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePin();
-                }}
-                className={`p-2 rounded-xl transition-all ${isPinned
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                  : 'bg-slate-100 dark:bg-neutral-700 text-slate-500 hover:text-primary-500'
-                  }`}
-              >
-                <Pin size={20} className={isPinned ? 'fill-current' : ''} />
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl bg-slate-100 dark:bg-neutral-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-neutral-600 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-8">
-          <div className="prose prose-slate dark:prose-invert max-w-none">
-            <div className="p-6 bg-slate-50 dark:bg-neutral-900/50 rounded-2xl border border-slate-200 dark:border-neutral-700">
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {notice.description}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-slate-100 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900/50 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-105 transition-all shadow-lg"
-          >
-            Got it
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// Helper function
-function getTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-
-  const intervals = {
-    year: 31536000,
-    month: 2592000,
-    week: 604800,
-    day: 86400,
-    hour: 3600,
-    minute: 60
-  };
-
-  for (const [key, value] of Object.entries(intervals)) {
-    const interval = Math.floor(seconds / value);
-    if (interval >= 1) {
-      return `${interval} ${key}${interval !== 1 ? 's' : ''} ago`;
-    }
-  }
-  return 'Just now';
 }
