@@ -3,7 +3,10 @@ import axios from 'axios';
 import config from '../../config';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
-import { Search, Filter, Plus, Trash2, Edit } from 'lucide-react';
+import PageHeader from '../../components/ui/PageHeader';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
+import { Search, Filter, Plus, Trash2, Edit, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const Students = () => {
@@ -202,22 +205,22 @@ const Students = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Students</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage all registered students ({totalStudents})</p>
-        </div>
-        <button
-          onClick={() => setCreateModal(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
-        >
-          <Plus size={20} />
-          <span>Add Student</span>
-        </button>
-      </div>
+      <PageHeader 
+        title="Students" 
+        description={`Manage all registered students (${totalStudents})`}
+        actions={
+          <button
+            onClick={() => setCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 font-medium"
+          >
+            <Plus size={20} />
+            <span>Add Student</span>
+          </button>
+        }
+      />
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={20} />
           <input
@@ -225,11 +228,11 @@ const Students = () => {
             placeholder="Search by name, room..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white"
+            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white"
           />
         </div>
 
-        <div className="relative flex bg-slate-50 dark:bg-neutral-900 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm">
+        <div className="relative flex bg-slate-50 dark:bg-zinc-950 p-1.5 rounded-2xl border border-slate-200/50 dark:border-zinc-800/50 shadow-inner backdrop-blur-sm">
           {['All', 'Active', 'Inactive'].map((status, index) => {
             const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
             return (
@@ -238,7 +241,7 @@ const Students = () => {
                 onClick={() => setStatusFilter(status === 'All' ? '' : status)}
                 className={`relative flex-1 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden group ${isActive
                   ? 'text-white shadow-lg scale-105'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
                   }`}
               >
                 {/* Active Background with Gradient */}
@@ -250,7 +253,7 @@ const Students = () => {
 
                 {/* Hover Effect for Inactive */}
                 {!isActive && (
-                  <div className="absolute inset-0 bg-slate-200/50 dark:bg-neutral-700/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-slate-200/50 dark:bg-zinc-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 )}
 
                 {/* Status Icon/Indicator */}
@@ -271,23 +274,27 @@ const Students = () => {
 
       {/* Students Grid */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden h-72 animate-pulse"></div>
+          ))}
         </div>
       ) : students.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700">
-          <p className="text-slate-500 dark:text-slate-400">No students found</p>
-        </div>
+        <EmptyState 
+          icon={Users}
+          title="No Students Found"
+          description={search ? `No students matching "${search}"` : "No students are currently registered."}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {students.map((student) => (
             <div
               key={student._id}
               onClick={() => handleView(student)}
-              className="group bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              className="group bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             >
               {/* Image Container */}
-              <div className="relative h-48 overflow-hidden bg-slate-100 dark:bg-neutral-900">
+              <div className="relative h-48 overflow-hidden bg-slate-100 dark:bg-zinc-950">
                 <img
                   src={student.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`}
                   alt={student.name}
@@ -298,14 +305,9 @@ const Students = () => {
                   }}
                 />
                 <div className="absolute top-3 right-3">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${student.status === 'Active'
-                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50'
-                    : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50'
-                    } shadow-sm backdrop-blur-md`}>
-                    <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${student.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                      }`}></span>
+                  <Badge variant={student.status === 'Active' ? 'success' : 'danger'}>
                     {student.status}
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
@@ -315,30 +317,30 @@ const Students = () => {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary-500 transition-colors">
                     {student.name}
                   </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
                     {student.department} • {student.year} Year
                   </p>
                 </div>
 
                 <div className="space-y-2 mb-5">
-                  <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center text-sm text-slate-600 dark:text-zinc-300">
                     <span className="w-20 text-xs uppercase tracking-wider text-slate-400 font-semibold">Room</span>
                     <span className="font-medium">{student.room || 'N/A'} <span className="text-slate-400">({student.block || '-'})</span></span>
                   </div>
-                  <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center text-sm text-slate-600 dark:text-zinc-300">
                     <span className="w-20 text-xs uppercase tracking-wider text-slate-400 font-semibold">Email</span>
                     <span className="truncate" title={student.email}>{student.email}</span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-neutral-700">
+                <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-zinc-800">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleEdit(student);
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-neutral-700/50 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-sm font-medium text-slate-600 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-800/50 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 transition-colors"
                   >
                     <Edit size={16} />
                     Edit
@@ -360,7 +362,7 @@ const Students = () => {
       )}
 
 
-      <div className="px-6 py-4 border-t border-slate-200 dark:border-neutral-700">
+      <div className="px-6 py-4 border-t border-slate-200 dark:border-zinc-800">
         <Pagination
           currentPage={page}
           totalPages={totalPages}
@@ -373,36 +375,36 @@ const Students = () => {
       <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Edit Student">
         <form onSubmit={handleUpdate} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Name</label>
             <input
               type="text"
               value={editingStudent?.name || ''}
               onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Email</label>
             <input
               type="email"
               value={editingStudent?.email || ''}
               onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Image URL</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Image URL</label>
             <input
               type="text"
               value={editingStudent?.image || ''}
               onChange={(e) => setEditingStudent({ ...editingStudent, image: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               placeholder="https://res.cloudinary.com/..."
             />
             <p className="text-xs text-slate-500 mt-1">Note: Must be a direct image link (e.g., ending in .jpg, .png). Pinterest page links won't work.</p>
             {editingStudent?.image && (
-              <div className="mt-2 flex items-center gap-3 p-2 bg-slate-100 dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700">
-                <div className="h-10 w-10 rounded-full overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 shrink-0">
+              <div className="mt-2 flex items-center gap-3 p-2 bg-slate-100 dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800">
+                <div className="h-10 w-10 rounded-full overflow-hidden bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 shrink-0">
                   <img
                     src={editingStudent.image}
                     alt="Preview"
@@ -415,7 +417,7 @@ const Students = () => {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">Preview</p>
+                  <p className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate">Preview</p>
                   <p className="text-[10px] text-slate-500 truncate">{editingStudent.image}</p>
                 </div>
               </div>
@@ -423,30 +425,30 @@ const Students = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Room</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Room</label>
               <input
                 type="text"
                 value={editingStudent?.room || ''}
                 onChange={(e) => setEditingStudent({ ...editingStudent, room: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Block</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Block</label>
               <input
                 type="text"
                 value={editingStudent?.block || ''}
                 onChange={(e) => setEditingStudent({ ...editingStudent, block: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Status</label>
             <select
               value={editingStudent?.status || ''}
               onChange={(e) => setEditingStudent({ ...editingStudent, status: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -456,7 +458,7 @@ const Students = () => {
             <button
               type="button"
               onClick={() => setEditModal(false)}
-              className="flex-1 px-4 py-2 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
             >
               Cancel
             </button>
@@ -474,40 +476,40 @@ const Students = () => {
       <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Add New Student">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name *</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Name *</label>
             <input
               type="text"
               required
               value={newStudent.name}
               onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               placeholder="Enter student name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email *</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Email *</label>
             <input
               type="email"
               required
               value={newStudent.email}
               onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               placeholder="student@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Image URL</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Image URL</label>
             <input
               type="text"
               value={newStudent.image}
               onChange={(e) => setNewStudent({ ...newStudent, image: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               placeholder="https://res.cloudinary.com/..."
             />
             <p className="text-xs text-slate-500 mt-1">Note: Must be a direct image link (e.g., ending in .jpg, .png). Pinterest page links won't work.</p>
             {newStudent.image && (
-              <div className="mt-2 flex items-center gap-3 p-2 bg-slate-100 dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700">
-                <div className="h-10 w-10 rounded-full overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 shrink-0">
+              <div className="mt-2 flex items-center gap-3 p-2 bg-slate-100 dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800">
+                <div className="h-10 w-10 rounded-full overflow-hidden bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 shrink-0">
                   <img
                     src={newStudent.image}
                     alt="Preview"
@@ -520,73 +522,73 @@ const Students = () => {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">Preview</p>
+                  <p className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate">Preview</p>
                   <p className="text-[10px] text-slate-500 truncate">{newStudent.image}</p>
                 </div>
               </div>
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password *</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Password *</label>
             <input
               type="password"
               required
               value={newStudent.password}
               onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
               placeholder="Enter password"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Room</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Room</label>
               <input
                 type="text"
                 value={newStudent.room}
                 onChange={(e) => setNewStudent({ ...newStudent, room: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
                 placeholder="101"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Block</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Block</label>
               <input
                 type="text"
                 value={newStudent.block}
                 onChange={(e) => setNewStudent({ ...newStudent, block: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
                 placeholder="A"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Department</label>
               <input
                 type="text"
                 value={newStudent.department}
                 onChange={(e) => setNewStudent({ ...newStudent, department: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
                 placeholder="CSE"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Year</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Year</label>
               <input
                 type="text"
                 value={newStudent.year}
                 onChange={(e) => setNewStudent({ ...newStudent, year: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
                 placeholder="1st"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Status</label>
             <select
               value={newStudent.status}
               onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value })}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -596,7 +598,7 @@ const Students = () => {
             <button
               type="button"
               onClick={() => setCreateModal(false)}
-              className="flex-1 px-4 py-2 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
             >
               Cancel
             </button>
@@ -614,12 +616,12 @@ const Students = () => {
       {
         selectedStudent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ display: viewModal ? 'flex' : 'none' }}>
-            <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-neutral-700 animate-in fade-in zoom-in duration-200">
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-neutral-700">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-zinc-800 animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-zinc-800">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Student Details</h3>
                 <button
                   onClick={() => setViewModal(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-500 dark:text-slate-400 transition-colors"
+                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors"
                 >
                   <Plus size={24} className="rotate-45" />
                 </button>
@@ -627,7 +629,7 @@ const Students = () => {
 
               <div className="p-6 space-y-6">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="h-16 w-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center overflow-hidden border-2 border-white dark:border-neutral-700 shadow-md">
+                  <div className="h-16 w-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center overflow-hidden border-2 border-white dark:border-zinc-800 shadow-md">
                     <img
                       src={selectedStudent.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedStudent.name)}&background=random`}
                       alt={selectedStudent.name}
@@ -640,48 +642,45 @@ const Students = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">{selectedStudent.name}</h2>
-                    <p className="text-slate-500 dark:text-slate-400">{selectedStudent.email}</p>
+                    <p className="text-slate-500 dark:text-zinc-400">{selectedStudent.email}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Room Info</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Room Info</h4>
                     <p className="text-slate-900 dark:text-white font-medium text-lg">Room {selectedStudent.room || "N/A"}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Block {selectedStudent.block || "-"}</p>
+                    <p className="text-sm text-slate-500 dark:text-zinc-400">Block {selectedStudent.block || "-"}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status</h4>
-                    <span className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${selectedStudent.status === 'Active'
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Status</h4>
+                    <Badge variant={selectedStudent.status === 'Active' ? 'success' : 'danger'}>
                       {selectedStudent.status}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Department</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Department</h4>
                     <p className="text-slate-900 dark:text-white font-medium">{selectedStudent.department || "N/A"}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Year</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Year</h4>
                     <p className="text-slate-900 dark:text-white font-medium">{selectedStudent.year || "N/A"}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Role</h4>
+                  <h4 className="text-sm font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Role</h4>
                   <p className="text-slate-900 dark:text-white font-medium capitalize">{selectedStudent.role}</p>
                 </div>
               </div>
 
-              <div className="p-6 border-t border-slate-100 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900/50 flex justify-end gap-3">
+              <div className="p-6 border-t border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950/50 flex justify-end gap-3">
                 <button
                   onClick={() => setViewModal(false)}
-                  className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-xl transition-colors font-medium"
+                  className="px-4 py-2 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl transition-colors font-medium"
                 >
                   Close
                 </button>

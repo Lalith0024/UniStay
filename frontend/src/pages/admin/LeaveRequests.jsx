@@ -2,34 +2,36 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import Pagination from '../../components/ui/Pagination';
-import { Check, X, Calendar, User, Search } from 'lucide-react';
+import PageHeader from '../../components/ui/PageHeader';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
+import DataTable from '../../components/ui/DataTable';
+import SlideOver from '../../components/ui/SlideOver';
+import { Search, Map, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+  
+  const [slideOverOpen, setSlideOverOpen] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [triageNote, setTriageNote] = useState('');
 
   const fetchLeaves = async () => {
     setLoading(true);
     try {
-      const params = {
-        page,
-        limit: 6,
-        status: statusFilter,
-        search
-      };
+      const params = { page, limit: 20, status: statusFilter, search };
       const res = await axios.get(`${config.API_URL}/api/leaves`, {
         params,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       setLeaves(res.data.data);
-      setTotalPages(res.data.meta.totalPages);
+      setTotalPages(res.data.meta?.totalPages || 1);
     } catch (error) {
       console.error("Error fetching leave requests:", error);
       toast.error("Failed to fetch leave requests");
@@ -45,144 +47,173 @@ const LeaveRequests = () => {
     return () => clearTimeout(debounce);
   }, [page, statusFilter, search]);
 
-  const handleStatusUpdate = async (id, newStatus) => {
+  const handleStatusUpdate = async (newStatus) => {
+    if(!selectedLeave) return;
     try {
-      await axios.patch(`${config.API_URL}/api/leaves/${id}/status`,
-        { status: newStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
+      // Backend expects status
+      // We could add `note` if backend supported it, but we'll include it just in case
+      await axios.patch(`${config.API_URL}/api/leaves/${selectedLeave._id}/status`,
+        { status: newStatus, note: triageNote },
+        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
       );
-      toast.success(`Leave request ${newStatus.toLowerCase()}`);
+      toast.success(`Leave request marked as ${newStatus}`);
+      setTriageNote('');
+      setSlideOverOpen(false);
       fetchLeaves();
     } catch (error) {
       toast.error("Failed to update status");
     }
   };
 
+  const handleView = (leave) => {
+    setSelectedLeave(leave);
+    setSlideOverOpen(true);
+  };
+
+  const tableColumns = [
+    { header: 'Student', render: (row) => (
+      <div>
+        <div className="font-bold text-slate-900 dark:text-white">{row.studentId?.name || "Unknown"}</div>
+        <div className="text-xs text-slate-500">Room {row.studentId?.room || "N/A"}</div>
+      </div>
+    )},
+    { header: 'Reason', accessor: 'reason', cellClassName: 'max-w-xs truncate' },
+    { header: 'Dates', render: (row) => (
+      <div className="text-sm">
+        {new Date(row.fromDate).toLocaleDateString()} - {new Date(row.toDate).toLocaleDateString()}
+      </div>
+    )},
+    { header: 'Status', render: (row) => (
+      <Badge variant={row.status === 'Approved' ? 'success' : row.status === 'Rejected' ? 'danger' : row.status === 'Checked Out' ? 'primary' : 'warning'}>
+        {row.status}
+      </Badge>
+    )},
+    { header: 'Requested On', render: (row) => new Date(row.createdAt).toLocaleDateString() },
+    { header: '', render: (row) => (
+      <button onClick={(e) => { e.stopPropagation(); handleView(row); }} className="p-2 text-slate-400 hover:text-primary-500 hover:bg-slate-100 dark:hover:bg-zinc-900 rounded-lg">
+        <Eye size={18} />
+      </button>
+    ), cellClassName: 'text-right' }
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Leave Requests</h1>
+      <PageHeader 
+        title="Leave Requests" 
+        description="Review, approve, or reject student out-passes and leave requests."
+      />
 
-        {/* Search Input */}
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={20} />
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-96 flex-shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
           <input
             type="text"
-            placeholder="Search reason, room..."
+            placeholder="Search student, reason..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all dark:text-white shadow-sm"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:text-white"
           />
         </div>
-      </div>
-
-      <div>
-        <div className="relative inline-flex bg-slate-50 dark:bg-neutral-900 p-1.5 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 shadow-inner backdrop-blur-sm w-full overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 min-w-max">
-            {['All', 'Pending', 'Approved', 'Rejected'].map((status) => {
-              const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
-              const getStatusColor = () => {
-                if (status === 'Approved') return 'bg-green-500';
-                if (status === 'Rejected') return 'bg-red-500';
-                if (status === 'Pending') return 'bg-yellow-500';
-                return 'bg-primary-500';
-              };
-              const getGlowColor = () => {
-                if (status === 'Approved') return 'from-green-400 to-green-600';
-                if (status === 'Rejected') return 'from-red-400 to-red-600';
-                if (status === 'Pending') return 'from-yellow-400 to-yellow-600';
-                return 'from-primary-400 to-primary-600';
-              };
-              return (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setStatusFilter(status === 'All' ? '' : status);
-                    setPage(1);
-                  }}
-                  className={`relative px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 overflow-hidden group whitespace-nowrap ${isActive
-                    ? 'text-white shadow-lg scale-105'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-102'
-                    }`}
-                >
-                  {isActive && (
-                    <>
-                      <div className={`absolute inset-0 ${getStatusColor()}`}></div>
-                    </>
-                  )}
-                  {!isActive && (
-                    <div className="absolute inset-0 bg-slate-200/50 dark:bg-neutral-700/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  )}
-                  <span className="relative z-10">{status}</span>
-                </button>
-              );
-            })}
-          </div>
+        
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+          {['All', 'Pending', 'Approved', 'Rejected', 'Checked Out'].map((status) => {
+            const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
+            return (
+              <button
+                key={status}
+                onClick={() => { setStatusFilter(status === 'All' ? '' : status); setPage(1); }}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md' : 'bg-slate-50 text-slate-600 dark:bg-zinc-950 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800'}`}
+              >
+                {status}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="text-center py-10 text-slate-500">Loading requests...</div>
+          <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>
         ) : leaves.length === 0 ? (
-          <div className="text-center py-10 text-slate-500">No leave requests found</div>
+          <EmptyState icon={Map} title="No Leave Requests Found" description="There are no leave requests matching the criteria." />
         ) : (
-          leaves.map((leave) => (
-            <div key={leave._id} className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-slate-200 dark:border-neutral-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                  <Calendar size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                    {leave.studentId?.name || 'Unknown Student'}
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${leave.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                      leave.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                      {leave.status}
-                    </span>
-                  </h3>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-4">
-                    <span className="flex items-center gap-1">
-                      <User size={14} /> Room {leave.studentId?.room || 'N/A'}
-                    </span>
-                    <span>
-                      {new Date(leave.fromDate).toLocaleDateString()} - {new Date(leave.toDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm bg-slate-50 dark:bg-neutral-900 p-3 rounded-lg border border-slate-100 dark:border-neutral-700">
-                    "{leave.reason}"
-                  </p>
-                </div>
-              </div>
-
-              {leave.status === 'Pending' && (
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => handleStatusUpdate(leave._id, 'Rejected')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/20 transition-colors font-medium"
-                  >
-                    <X size={18} /> Reject
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(leave._id, 'Approved')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/20 transition-colors font-medium"
-                  >
-                    <Check size={18} /> Approve
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
+          <DataTable columns={tableColumns} data={leaves} onRowClick={handleView} />
         )}
       </div>
 
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+        </div>
+      )}
+
+      {/* Triage SlideOver */}
+      <SlideOver isOpen={slideOverOpen} onClose={() => setSlideOverOpen(false)} title="Leave Details">
+        {selectedLeave && (
+          <div className="space-y-6 flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto space-y-6 pb-6 custom-scrollbar">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-mono text-xs font-bold bg-slate-100 dark:bg-zinc-900 px-2 py-1 rounded-md">
+                  #{selectedLeave._id.slice(-6)}
+                </span>
+                <Badge variant={selectedLeave.status === 'Approved' ? 'success' : selectedLeave.status === 'Rejected' ? 'danger' : selectedLeave.status === 'Checked Out' ? 'primary' : 'warning'}>
+                  {selectedLeave.status}
+                </Badge>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">{selectedLeave.reason}</h2>
+                <div className="text-slate-500 dark:text-zinc-400 text-sm font-medium">
+                  {new Date(selectedLeave.fromDate).toLocaleDateString()} to {new Date(selectedLeave.toDate).toLocaleDateString()}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Student</h4>
+                  <div className="font-bold text-slate-900 dark:text-white">{selectedLeave.studentId?.name || "Unknown"}</div>
+                  <div className="text-sm text-slate-500">{selectedLeave.studentId?.email}</div>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</h4>
+                  <div className="font-bold text-slate-900 dark:text-white">Room {selectedLeave.studentId?.room || "N/A"}</div>
+                  <div className="text-sm text-slate-500">Block {selectedLeave.studentId?.block || "-"}</div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-zinc-900 p-4 rounded-xl border border-slate-100 dark:border-zinc-800">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Requested On</h4>
+                <div className="text-sm font-medium text-slate-900 dark:text-white">{new Date(selectedLeave.createdAt).toLocaleString()}</div>
+              </div>
+            </div>
+
+            {/* Approval Actions Container */}
+            {selectedLeave.status === 'Pending' && (
+              <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300 mb-2">Note to Student (Optional)</label>
+                  <textarea
+                    rows="2"
+                    value={triageNote}
+                    onChange={(e) => setTriageNote(e.target.value)}
+                    placeholder="Provide a reason or instructions..."
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 text-sm resize-none dark:text-white"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={() => handleStatusUpdate('Rejected')} className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                    <XCircle size={18} /> Reject
+                  </button>
+                  <button onClick={() => handleStatusUpdate('Approved')} className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                    <CheckCircle size={18} /> Approve
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </SlideOver>
     </div>
   );
 };
