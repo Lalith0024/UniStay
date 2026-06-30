@@ -143,7 +143,7 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Role Selector - Toggle Buttons */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
                   Login as
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -152,7 +152,7 @@ const Login = () => {
                     onClick={() => handleRoleChange('student')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'student'
                       ? 'bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)] text-white shadow-lg'
-                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -163,7 +163,7 @@ const Login = () => {
                     onClick={() => handleRoleChange('admin')}
                     className={`relative px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${formData.role === 'admin'
                       ? 'bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)] text-white shadow-lg'
-                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
+                      : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-slate-700 hover:border-[var(--cyan)] dark:hover:border-[var(--cyan)]'
                       }`}
                   >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -227,7 +227,7 @@ const Login = () => {
                 )}
               </button>
 
-              <p className="text-center text-sm text-slate-500 dark:text-slate-400 pt-4">
+              <p className="text-center text-sm text-slate-500 dark:text-zinc-400 pt-4">
                 Don't have an account?{' '}
                 <Link to="/signup" className="font-semibold text-[var(--cyan)] hover:opacity-80 transition-colors">
                   Create Account
@@ -239,7 +239,7 @@ const Login = () => {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200/20 dark:border-slate-800/20" />
                 </div>
-                <span className="relative px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-[#0a0a0c]/80 backdrop-blur-md rounded-full border border-slate-200/10 py-0.5 px-2">
+                <span className="relative px-3 text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest bg-[#0a0a0c]/80 backdrop-blur-md rounded-full border border-slate-200/10 py-0.5 px-2">
                   Quick View
                 </span>
               </div>
