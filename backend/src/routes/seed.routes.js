@@ -1,123 +1,204 @@
 const express = require('express');
 const router = express.Router();
 const { Student, Room, Complaint, Leave, Notice } = require('../models');
+const User = require('../models/user.model');
+const bcrypt = require('bcrypt');
+
+const firstNamesM = ['Aarav', 'Vihaan', 'Aditya', 'Sai', 'Arjun', 'Kabir', 'Rohan', 'Aryan', 'Dhruv', 'Ishaan', 'Rahul', 'Vikram', 'Karan', 'Rohit', 'Amit'];
+const firstNamesF = ['Ananya', 'Diya', 'Sneha', 'Priya', 'Aditi', 'Neha', 'Pooja', 'Riya', 'Ishita', 'Kriti', 'Simran', 'Anjali', 'Meera', 'Kavya', 'Shruti'];
+const lastNames = ['Sharma', 'Patel', 'Kumar', 'Singh', 'Gupta', 'Verma', 'Reddy', 'Rao', 'Jain', 'Das', 'Malhotra', 'Kaur', 'Nair', 'Bose', 'Sengupta'];
+const departments = ['CSE', 'ECE', 'MECH', 'CIVIL', 'IT', 'EEE'];
+const years = ['1st', '2nd', '3rd', '4th'];
+
+function getRandomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateRandomStudent(index) {
+  const isMale = Math.random() > 0.5;
+  const firstName = isMale ? getRandomItem(firstNamesM) : getRandomItem(firstNamesF);
+  const lastName = getRandomItem(lastNames);
+  const genderDir = isMale ? 'men' : 'women';
+  const picNum = getRandomInt(1, 99);
+
+  return {
+    name: `${firstName} ${lastName}`,
+    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@test.com`,
+    department: getRandomItem(departments),
+    year: getRandomItem(years),
+    phone: `98765${getRandomInt(10000, 99999)}`,
+    image: `https://randomuser.me/api/portraits/${genderDir}/${picNum}.jpg`,
+    status: Math.random() > 0.05 ? 'Active' : 'Inactive',
+  };
+}
 
 // Seed Data Endpoint
 router.post('/', async (req, res) => {
   try {
-    const User = require('../models/user.model');
-    const bcrypt = require('bcrypt');
-
-    // Clear existing data to avoid duplicates on re-seed
+    console.log('Starting seed process...');
+    // Clear existing data
     await Student.deleteMany({});
     await Room.deleteMany({});
     await Complaint.deleteMany({});
     await Leave.deleteMany({});
     await Notice.deleteMany({});
-    // Delete only student users to keep admin accounts intact
     await User.deleteMany({ role: 'student' });
 
     const commonPassword = await bcrypt.hash('123', 10);
 
-    // Create dummy data with professional images
-    const studentData = [
-      { name: 'Rahul Sharma', email: 'rahul@test.com', password: commonPassword, room: '101', block: 'A', status: 'Active', department: 'CSE', year: '3rd', image: 'https://randomuser.me/api/portraits/men/32.jpg' },
-      { name: 'Priya Patel', email: 'priya@test.com', password: commonPassword, room: '102', block: 'A', status: 'Active', department: 'ECE', year: '2nd', image: 'https://randomuser.me/api/portraits/women/44.jpg' },
-      { name: 'Amit Kumar', email: 'amit@test.com', password: commonPassword, room: '103', block: 'B', status: 'Inactive', department: 'MECH', year: '4th', image: 'https://randomuser.me/api/portraits/men/22.jpg' },
-      { name: 'Sneha Gupta', email: 'sneha@test.com', password: commonPassword, room: '104', block: 'A', status: 'Active', department: 'CSE', year: '1st', image: 'https://randomuser.me/api/portraits/women/68.jpg' },
-      { name: 'Vikram Singh', email: 'vikram@test.com', password: commonPassword, room: '105', block: 'B', status: 'Active', department: 'CIVIL', year: '3rd', image: 'https://randomuser.me/api/portraits/men/46.jpg' },
-      { name: 'Anjali Rai', email: 'anjali@test.com', password: commonPassword, room: '106', block: 'A', status: 'Active', department: 'ECE', year: '2nd', image: 'https://randomuser.me/api/portraits/women/65.jpg' },
-      { name: 'Rohit Verma', email: 'rohit@test.com', password: commonPassword, room: '107', block: 'B', status: 'Active', department: 'CSE', year: '4th', image: 'https://randomuser.me/api/portraits/men/54.jpg' },
-      { name: 'Neha Jain', email: 'neha@test.com', password: commonPassword, room: '108', block: 'A', status: 'Inactive', department: 'MECH', year: '1st', image: 'https://randomuser.me/api/portraits/women/26.jpg' },
-      { name: 'Karan Malhotra', email: 'karan@test.com', password: commonPassword, room: '109', block: 'B', status: 'Active', department: 'CIVIL', year: '3rd', image: 'https://randomuser.me/api/portraits/men/12.jpg' },
-      { name: 'Simran Kaur', email: 'simran@test.com', password: commonPassword, room: '110', block: 'A', status: 'Active', department: 'CSE', year: '2nd', image: 'https://randomuser.me/api/portraits/women/90.jpg' },
-      { name: 'Arjun Das', email: 'arjun@test.com', password: commonPassword, room: '111', block: 'B', status: 'Active', department: 'ECE', year: '4th', image: 'https://randomuser.me/api/portraits/men/85.jpg' },
-      { name: 'Meera Reddy', email: 'meera@test.com', password: commonPassword, room: '112', block: 'A', status: 'Active', department: 'MECH', year: '1st', image: 'https://randomuser.me/api/portraits/women/62.jpg' }
+    // 1. Generate 100 Rooms (50 Block A, 50 Block B)
+    const roomsToInsert = [];
+    const roomTypes = [
+      { type: 'Single', capacity: 1, rent: 8000 },
+      { type: 'Double', capacity: 2, rent: 5000 },
+      { type: 'Triple', capacity: 3, rent: 4000 }
     ];
 
+    let totalCapacity = 0;
+
+    for (let i = 1; i <= 50; i++) {
+      const typeA = getRandomItem(roomTypes);
+      const typeB = getRandomItem(roomTypes);
+      
+      roomsToInsert.push({
+        number: `1${i.toString().padStart(2, '0')}`,
+        block: 'A',
+        type: typeA.type,
+        capacity: typeA.capacity,
+        occupied: 0,
+        rent: typeA.rent,
+        status: 'Available'
+      });
+
+      roomsToInsert.push({
+        number: `2${i.toString().padStart(2, '0')}`,
+        block: 'B',
+        type: typeB.type,
+        capacity: typeB.capacity,
+        occupied: 0,
+        rent: typeB.rent,
+        status: 'Available'
+      });
+
+      totalCapacity += typeA.capacity + typeB.capacity;
+    }
+
+    // 2. Calculate 78% occupancy
+    const targetOccupancy = Math.floor(totalCapacity * 0.78);
+    console.log(`Total Capacity: ${totalCapacity}. Target Occupancy (78%): ${targetOccupancy}`);
+
+    // 3. Allot students to rooms randomly
+    const studentData = [];
+    let studentsAllotted = 0;
+
+    // Shuffle rooms to ensure random distribution
+    const shuffledRooms = [...roomsToInsert].sort(() => Math.random() - 0.5);
+
+    for (const room of shuffledRooms) {
+      if (studentsAllotted >= targetOccupancy) break;
+
+      const maxCanAdd = Math.min(room.capacity, targetOccupancy - studentsAllotted);
+      
+      let toAdd = 0;
+      const rand = Math.random();
+      if (rand > 0.3) {
+        toAdd = maxCanAdd;
+      } else if (rand > 0.1 && maxCanAdd > 1) {
+        toAdd = maxCanAdd - 1;
+      } else {
+        toAdd = 0;
+      }
+
+      for (let s = 0; s < toAdd; s++) {
+        const student = generateRandomStudent(studentsAllotted);
+        student.password = commonPassword;
+        student.room = room.number;
+        student.block = room.block;
+        studentData.push(student);
+        studentsAllotted++;
+        room.occupied++;
+      }
+
+      if (room.occupied === room.capacity) {
+        room.status = 'Full';
+      }
+    }
+
+    // 4. Create Documents
+    console.log(`Creating ${roomsToInsert.length} rooms and ${studentData.length} students...`);
+    await Room.create(roomsToInsert);
     const students = await Student.create(studentData);
 
-    // Create corresponding User entries
-    const userData = [
-      ...studentData.map(s => ({
-        name: s.name,
-        email: s.email,
-        password: s.password,
-        role: 'student'
-      })),
-      {
+    const userData = studentData.map(s => ({
+      name: s.name,
+      email: s.email,
+      password: s.password,
+      role: 'student'
+    }));
+    await User.create(userData);
+
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      await User.create({
         name: 'Admin User',
         email: 'admin@test.com',
         password: commonPassword,
         role: 'admin'
-      }
-    ];
-    await User.create(userData);
+      });
+    }
 
-    await Room.create([
-      { number: '101', block: 'A', type: 'Double', capacity: 2, occupied: 1, rent: 5000, status: 'Available' },
-      { number: '102', block: 'A', type: 'Single', capacity: 1, occupied: 1, rent: 8000, status: 'Full' },
-      { number: '103', block: 'B', type: 'Triple', capacity: 3, occupied: 2, rent: 4000, status: 'Available' },
-      { number: '104', block: 'A', type: 'Double', capacity: 2, occupied: 0, rent: 5000, status: 'Available' },
-      { number: '105', block: 'B', type: 'Single', capacity: 1, occupied: 0, rent: 8000, status: 'Available' },
-      { number: '106', block: 'A', type: 'Triple', capacity: 3, occupied: 3, rent: 4000, status: 'Full' },
-      { number: '107', block: 'B', type: 'Double', capacity: 2, occupied: 2, rent: 5000, status: 'Full' },
-      { number: '108', block: 'A', type: 'Single', capacity: 1, occupied: 0, rent: 8000, status: 'Maintenance' },
-      { number: '109', block: 'B', type: 'Triple', capacity: 3, occupied: 1, rent: 4000, status: 'Available' },
-      { number: '110', block: 'A', type: 'Double', capacity: 2, occupied: 1, rent: 5000, status: 'Available' },
-      { number: '111', block: 'B', type: 'Single', capacity: 1, occupied: 1, rent: 8000, status: 'Full' },
-      { number: '112', block: 'A', type: 'Triple', capacity: 3, occupied: 0, rent: 4000, status: 'Available' }
-    ]);
+    // 5. Seed Activity (Complaints and Leaves)
+    const complaints = [];
+    const leaves = [];
+    const issues = ['Leaking Tap', 'WiFi Not Working', 'Broken Chair', 'Power Cut', 'AC Not Working', 'Door Lock Issue', 'Bed Broken', 'No Hot Water', 'Window Broken', 'Fan Not Working'];
+    const statuses = ['Pending', 'In Progress', 'Resolved', 'Rejected'];
+    const priorities = ['Low', 'Medium', 'High'];
 
-    await Complaint.create([
-      { studentId: students[0]._id, issue: 'Leaking Tap', description: 'Bathroom tap is leaking continuously.', priority: 'Medium', status: 'Pending', date: new Date('2023-10-25') },
-      { studentId: students[1]._id, issue: 'WiFi Not Working', description: 'Internet connection is very slow in room 102.', priority: 'High', status: 'Resolved', date: new Date('2023-10-20') },
-      { studentId: students[2]._id, issue: 'Broken Chair', description: 'Study chair leg is broken.', priority: 'Low', status: 'Pending', date: new Date('2023-10-26') },
-      { studentId: students[3]._id, issue: 'Power Cut', description: 'No electricity in block A since morning.', priority: 'High', status: 'Pending', date: new Date('2023-10-27') },
-      { studentId: students[4]._id, issue: 'Dirty Corridor', description: 'Corridor needs cleaning.', priority: 'Low', status: 'Rejected', date: new Date('2023-10-15') },
-      { studentId: students[5]._id, issue: 'AC Not Working', description: 'Air conditioner is making loud noise.', priority: 'Medium', status: 'Pending', date: new Date('2023-10-28') },
-      { studentId: students[6]._id, issue: 'Door Lock Issue', description: 'Room door lock is jammed.', priority: 'High', status: 'Resolved', date: new Date('2023-10-18') },
-      { studentId: students[7]._id, issue: 'Bed Broken', description: 'Bed frame is damaged.', priority: 'Medium', status: 'Pending', date: new Date('2023-10-24') },
-      { studentId: students[8]._id, issue: 'No Hot Water', description: 'Water heater not functioning.', priority: 'High', status: 'Pending', date: new Date('2023-10-29') },
-      { studentId: students[9]._id, issue: 'Window Broken', description: 'Window pane is cracked.', priority: 'Medium', status: 'Resolved', date: new Date('2023-10-19') },
-      { studentId: students[10]._id, issue: 'Fan Not Working', description: 'Ceiling fan is not rotating.', priority: 'Low', status: 'Pending', date: new Date('2023-10-30') },
-      { studentId: students[11]._id, issue: 'Pest Problem', description: 'Rats spotted in the common area.', priority: 'High', status: 'Pending', date: new Date('2023-10-31') },
-      { studentId: students[0]._id, issue: 'Light Not Working', description: 'Tube light needs replacement.', priority: 'Low', status: 'Rejected', date: new Date('2023-10-14') },
-      { studentId: students[1]._id, issue: 'Bathroom Door', description: 'Bathroom door hinge is loose.', priority: 'Medium', status: 'Pending', date: new Date('2023-11-01') },
-      { studentId: students[2]._id, issue: 'Drainage Issue', description: 'Bathroom drainage is clogged.', priority: 'High', status: 'Resolved', date: new Date('2023-10-22') }
-    ]);
+    for (let i = 0; i < 40; i++) {
+      const randomStudent = getRandomItem(students);
+      const daysAgo = getRandomInt(0, 14);
+      const date = new Date();
+      date.setDate(date.getDate() - daysAgo);
 
-    await Leave.create([
-      { studentId: students[0]._id, fromDate: new Date('2023-11-01'), toDate: new Date('2023-11-05'), reason: 'Going home for Diwali', status: 'Approved' },
-      { studentId: students[1]._id, fromDate: new Date('2023-11-10'), toDate: new Date('2023-11-12'), reason: 'Medical Checkup', status: 'Pending' },
-      { studentId: students[2]._id, fromDate: new Date('2023-11-15'), toDate: new Date('2023-11-20'), reason: 'Sister Wedding', status: 'Pending' },
-      { studentId: students[3]._id, fromDate: new Date('2023-10-28'), toDate: new Date('2023-10-30'), reason: 'Personal work', status: 'Rejected' },
-      { studentId: students[4]._id, fromDate: new Date('2023-11-05'), toDate: new Date('2023-11-08'), reason: 'Family function', status: 'Approved' },
-      { studentId: students[5]._id, fromDate: new Date('2023-11-12'), toDate: new Date('2023-11-14'), reason: 'Exam preparation at home', status: 'Pending' },
-      { studentId: students[6]._id, fromDate: new Date('2023-11-20'), toDate: new Date('2023-11-25'), reason: 'Cousin wedding', status: 'Pending' },
-      { studentId: students[7]._id, fromDate: new Date('2023-10-25'), toDate: new Date('2023-10-27'), reason: 'Medical emergency', status: 'Approved' },
-      { studentId: students[8]._id, fromDate: new Date('2023-11-08'), toDate: new Date('2023-11-10'), reason: 'Interview', status: 'Approved' },
-      { studentId: students[9]._id, fromDate: new Date('2023-11-18'), toDate: new Date('2023-11-22'), reason: 'Going home', status: 'Pending' },
-      { studentId: students[10]._id, fromDate: new Date('2023-10-20'), toDate: new Date('2023-10-22'), reason: 'Not feeling well', status: 'Rejected' },
-      { studentId: students[11]._id, fromDate: new Date('2023-11-25'), toDate: new Date('2023-11-30'), reason: 'Project work', status: 'Pending' }
-    ]);
+      complaints.push({
+        studentId: randomStudent._id,
+        issue: getRandomItem(issues),
+        description: 'Autogenerated complaint description.',
+        priority: getRandomItem(priorities),
+        status: getRandomItem(statuses),
+        date: date
+      });
+    }
 
-    await Notice.create([
-      { title: 'Diwali Vacation', description: 'Hostel will remain closed from Nov 1st to Nov 5th for Diwali.', priority: 'Normal', date: new Date('2023-10-25') },
-      { title: 'Water Supply Maintenance', description: 'Water supply will be interrupted on Sunday from 10 AM to 2 PM.', priority: 'Urgent', date: new Date('2023-10-27') },
-      { title: 'Guest Policy Update', description: 'New guest policy effective from next month. Check notice board.', priority: 'Normal', date: new Date('2023-10-20') },
-      { title: 'Exam Schedule', description: 'Mid-semester exams will be held from 15th to 20th Nov.', priority: 'Urgent', date: new Date('2023-10-28') },
-      { title: 'Hostel Fee Payment', description: 'Please clear hostel dues by 30th November.', priority: 'Urgent', date: new Date('2023-10-26') },
-      { title: 'Cultural Event', description: 'Annual cultural fest on 5th December. Register now!', priority: 'Normal', date: new Date('2023-10-24') },
-      { title: 'Mess Menu Update', description: 'New menu items added. Check the notice board.', priority: 'Normal', date: new Date('2023-10-23') },
-      { title: 'Internet Upgrade', description: 'WiFi speed will be upgraded next week.', priority: 'Normal', date: new Date('2023-10-29') },
-      { title: 'Safety Drill', description: 'Fire safety drill on Saturday at 4 PM. Attendance mandatory.', priority: 'Urgent', date: new Date('2023-10-30') },
-      { title: 'Sports Day', description: 'Inter-hostel sports competition on 10th December.', priority: 'Normal', date: new Date('2023-10-21') }
-    ]);
+    for (let i = 0; i < 30; i++) {
+      const randomStudent = getRandomItem(students);
+      const daysAgo = getRandomInt(0, 14);
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - daysAgo);
+      const toDate = new Date(fromDate);
+      toDate.setDate(toDate.getDate() + getRandomInt(1, 5));
 
-    res.json({ message: 'Seeded successfully with comprehensive dummy data and user accounts' });
+      leaves.push({
+        studentId: randomStudent._id,
+        fromDate,
+        toDate,
+        reason: 'Going home for holidays',
+        status: getRandomItem(['Pending', 'Approved', 'Rejected'])
+      });
+    }
+
+    await Complaint.create(complaints);
+    await Leave.create(leaves);
+
+    console.log('Seeding completed!');
+    res.json({ message: `Successfully seeded 100 rooms and ${studentData.length} students (~78% occupancy)!` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Seed error:', error);
+    res.status(500).json({ message: 'Seed failed', error: error.message });
   }
 });
 

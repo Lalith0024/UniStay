@@ -31,8 +31,8 @@ const DashboardOverview = () => {
     
     try {
       const [studentsRes, roomsRes, complaintsRes, leavesRes] = await Promise.allSettled([
-        axios.get(`${config.API_URL}/api/students`, { headers }),
-        axios.get(`${config.API_URL}/api/rooms`, { headers }),
+        axios.get(`${config.API_URL}/api/students?limit=1000`, { headers }),
+        axios.get(`${config.API_URL}/api/rooms?limit=1000`, { headers }),
         axios.get(`${config.API_URL}/api/complaints?limit=100&sort=createdAt:desc`, { headers }),
         axios.get(`${config.API_URL}/api/leaves?limit=100&sort=createdAt:desc`, { headers }),
       ]);
@@ -42,10 +42,10 @@ const DashboardOverview = () => {
       const complaintsData = complaintsRes.status === 'fulfilled' ? complaintsRes.value.data : null;
       const leavesData = leavesRes.status === 'fulfilled' ? leavesRes.value.data : null;
 
-      const totalStudents = studentsData?.meta?.total || studentsData?.data?.length || 0;
-      const totalRooms = roomsData?.meta?.total || roomsData?.data?.length || 0;
-      const occupiedRooms = roomsData?.data?.filter(r => r.occupants?.length > 0)?.length || 0;
-      const occupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+      const totalStudents = studentsData?.meta?.total || 0;
+      const totalRooms = roomsData?.meta?.total || 0;
+      const totalCapacity = roomsData?.data?.reduce((acc, room) => acc + (room.capacity || 0), 0) || (totalRooms * 2);
+      const occupancy = totalCapacity > 0 ? Math.round((totalStudents / totalCapacity) * 100) : 0;
       
       const allComplaints = complaintsData?.data || [];
       const pendingComplaints = allComplaints.filter(c => c.status === 'Pending' || c.status === 'In Progress');
@@ -95,7 +95,7 @@ const DashboardOverview = () => {
           const b = r.block || 'A';
           if (!blocks[b]) blocks[b] = { name: `Block ${b}`, Total: 0, Occupied: 0 };
           blocks[b].Total += 1;
-          if (r.occupants?.length > 0) blocks[b].Occupied += 1;
+          if (r.occupied > 0) blocks[b].Occupied += 1;
         });
         setBlockData(Object.values(blocks));
       } else {
@@ -193,7 +193,7 @@ const DashboardOverview = () => {
               <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">Total vs Occupied Rooms</p>
             </div>
           </div>
-          <div className="flex-1 min-h-[220px]">
+          <div className="flex-1 min-h-[220px] min-w-0">
             {loading ? (
               <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
             ) : (
@@ -229,7 +229,7 @@ const DashboardOverview = () => {
               </div>
             </div>
           </div>
-          <div className="flex-1 min-h-[220px]">
+          <div className="flex-1 min-h-[220px] min-w-0">
             {loading ? (
               <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
             ) : (

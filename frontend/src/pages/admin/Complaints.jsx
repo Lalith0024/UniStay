@@ -6,6 +6,7 @@ import PageHeader from '../../components/ui/PageHeader';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import DataTable from '../../components/ui/DataTable';
+import ViewToggle from '../../components/ui/ViewToggle';
 import SlideOver from '../../components/ui/SlideOver';
 import PriorityBadge from '../../components/ui/PriorityBadge';
 import Timeline from '../../components/ui/Timeline';
@@ -18,7 +19,8 @@ const Complaints = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Pending');
+  const [viewMode, setViewMode] = useState('grid');
   
   const [slideOverOpen, setSlideOverOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
@@ -114,7 +116,7 @@ const Complaints = () => {
         </div>
         
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-          {['All', 'Pending', 'In Progress', 'Resolved', 'Rejected'].map((status) => {
+          {['Pending', 'In Progress', 'Resolved', 'Rejected', 'All'].map((status) => {
             const isActive = (status === 'All' && statusFilter === '') || statusFilter === status;
             return (
               <button
@@ -127,15 +129,63 @@ const Complaints = () => {
             );
           })}
         </div>
+        
+        <div className="hidden md:block">
+          <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+      <div>
         {loading ? (
           <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>
         ) : complaints.length === 0 ? (
-          <EmptyState icon={AlertCircle} title="No Complaints Found" description="You have no complaints matching the criteria." />
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden"><EmptyState icon={AlertCircle} title="No Complaints Found" description="You have no complaints matching the criteria." /></div>
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {complaints.map(complaint => (
+              <div 
+                key={complaint._id}
+                onClick={() => handleView(complaint)}
+                className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/60 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col group"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <Badge variant={complaint.status === 'Resolved' ? 'success' : complaint.status === 'Pending' ? 'warning' : complaint.status === 'In Progress' ? 'primary' : 'danger'}>
+                    {complaint.status}
+                  </Badge>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(complaint.date || complaint.createdAt).toLocaleDateString()}</span>
+                </div>
+                
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary-500 transition-colors">
+                  {complaint.issue}
+                </h3>
+                
+                <p className="text-sm text-slate-500 dark:text-zinc-400 line-clamp-2 mb-4 flex-1">
+                  {complaint.description}
+                </p>
+
+                <div className="pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0">
+                      {complaint.studentId?.image ? (
+                        <img src={complaint.studentId.image} alt={complaint.studentId.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400">{complaint.studentId?.name?.charAt(0) || '?'}</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white truncate">{complaint.studentId?.name || "Unknown"}</div>
+                      <div className="text-[10px] text-slate-500 truncate">Room {complaint.studentId?.room || "N/A"}</div>
+                    </div>
+                  </div>
+                  <PriorityBadge priority={complaint.priority} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          <DataTable columns={tableColumns} data={complaints} onRowClick={handleView} />
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <DataTable columns={tableColumns} data={complaints} onRowClick={handleView} />
+          </div>
         )}
       </div>
 
