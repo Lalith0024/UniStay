@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 const DataTable = ({ columns, data, loading, emptyState, className, onRowClick }) => {
   return (
     <div className={twMerge("bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800 shadow-sm overflow-hidden", className)}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <table className="w-full text-left border-collapse">
           <thead className="bg-slate-50/80 dark:bg-zinc-950/50 border-b border-slate-200/60 dark:border-zinc-800">
             <tr>

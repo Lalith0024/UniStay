@@ -56,12 +56,12 @@ const KPICard = ({ title, value, icon: Icon, trend, trendValue, color = 'primary
   };
 
   const content = (
-    <div className={`relative p-6 bg-white dark:bg-zinc-900 rounded-2xl border-l-4 ${c.accent} border border-slate-200/60 dark:border-zinc-800 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${to ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1 group' : ''}`}>
+    <div className={`relative p-4 sm:p-6 bg-white dark:bg-zinc-900 rounded-2xl border-l-4 ${c.accent} border border-slate-200/60 dark:border-zinc-800 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${to ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1 group' : ''}`}>
       {/* Subtle gradient glow in corner */}
       <div className={`absolute -top-8 -right-8 w-24 h-24 ${c.iconBg} opacity-[0.07] dark:opacity-[0.12] rounded-full blur-2xl pointer-events-none`} />
 
-      <div className="flex justify-between items-start mb-5 relative z-10">
-        <div className={`p-3 rounded-xl ${c.iconBg} ${c.iconText} shadow-lg ${c.glow}`}>
+      <div className="flex justify-between items-start mb-4 sm:mb-5 relative z-10">
+        <div className={`p-2 sm:p-3 rounded-xl ${c.iconBg} ${c.iconText} shadow-lg ${c.glow}`}>
           <Icon size={22} strokeWidth={2} />
         </div>
         {trendValue && (
@@ -73,8 +73,8 @@ const KPICard = ({ title, value, icon: Icon, trend, trendValue, color = 'primary
       </div>
 
       <div className="relative z-10">
-        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{value}</h3>
-        <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">{title}</p>
+        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-0.5">{value}</h3>
+        <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-zinc-400">{title}</p>
         {subtitle && <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">{subtitle}</p>}
       </div>
 

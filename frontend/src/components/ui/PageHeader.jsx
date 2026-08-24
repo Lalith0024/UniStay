@@ -26,7 +26,7 @@ const PageHeader = ({ title, description, actions, breadcrumbs }) => {
         )}
       </div>
       {actions && (
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 shrink-0 w-full sm:w-auto">
           {actions}
         </div>
       )}

@@ -143,7 +143,7 @@ const StudentDashboard = () => {
               <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">Rent & Mess fees (Simulated)</p>
             </div>
           </div>
-          <div className="flex-1 min-h-[220px]">
+          <div className="flex-1 min-h-[220px] min-w-0">
             {loading ? (
               <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
             ) : (
@@ -169,7 +169,7 @@ const StudentDashboard = () => {
               <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">Leaves vs Complaints (7 Days)</p>
             </div>
           </div>
-          <div className="flex-1 min-h-[220px]">
+          <div className="flex-1 min-h-[220px] min-w-0">
             {loading ? (
               <div className="w-full h-full bg-slate-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
             ) : (
